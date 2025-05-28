@@ -4,43 +4,29 @@ import { useState, useEffect } from "react"
 import { useLabels } from "@/hooks/use-labels"
 import { LabelCard } from "@/components/label-card"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
-import type { Label } from "@/store/use-store"
+// import type { Label } from "@/store/use-store"; // Label is now string via lib/api.ts
 
 export default function LabelsPage() {
-  const { labels, isLoading } = useLabels()
+  const { labels, isLoading } = useLabels() // useLabels now returns string[]
   const [searchTerm, setSearchTerm] = useState("")
-  const [filteredLabels, setFilteredLabels] = useState<Label[]>([])
-  const [activeCategory, setActiveCategory] = useState<string>("all")
+  const [filteredLabels, setFilteredLabels] = useState<string[]>([])
+  // activeCategory and categories are removed
 
-  // Asegurarnos de que labels sea un array
-  const safeLabels = Array.isArray(labels) ? labels : []
-
-  // Find unique categories
-  const categories = ["all", ...Array.from(new Set(safeLabels.map((label) => label.category)))]
-
-  // Filter labels based on search and category
+  // Filter labels based on search
   useEffect(() => {
     // Asegurarnos de que labels sea un array
     const safeLabels = Array.isArray(labels) ? labels : []
     let filtered = [...safeLabels]
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (label) =>
-          label.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          label.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+      filtered = filtered.filter((label) => label.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
-    if (activeCategory !== "all") {
-      filtered = filtered.filter((label) => label.category === activeCategory)
-    }
-
+    // Category filtering removed
     setFilteredLabels(filtered)
-  }, [labels, searchTerm, activeCategory])
+  }, [labels, searchTerm]) // activeCategory removed from dependencies
 
   return (
     <div className="container py-8">
@@ -57,35 +43,24 @@ export default function LabelsPage() {
         />
       </div>
 
-      <Tabs defaultValue="all" value={activeCategory} onValueChange={setActiveCategory}>
-        <TabsList className="mb-6 flex flex-wrap h-auto">
-          {categories.map((category) => (
-            <TabsTrigger key={category} value={category} className="mb-1">
-              {category === "all" ? "Todas" : category}
-            </TabsTrigger>
+      {/* Tabs component removed */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="w-full h-[250px]" />
           ))}
-        </TabsList>
-
-        <TabsContent value={activeCategory} className="mt-0">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="w-full h-[250px]" />
-              ))}
-            </div>
-          ) : filteredLabels.length === 0 ? (
-            <div className="text-center py-8 border rounded-lg">
-              <p className="text-muted-foreground">No se encontraron señas</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredLabels.map((label) => (
-                <LabelCard key={label.id} label={label} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      ) : filteredLabels.length === 0 ? (
+        <div className="text-center py-8 border rounded-lg">
+          <p className="text-muted-foreground">No se encontraron señas</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredLabels.map((label) => (
+            <LabelCard key={label} label={label} /> // Key updated to label itself
+          ))}
+        </div>
+      )}
     </div>
   )
 }

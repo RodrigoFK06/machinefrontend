@@ -30,14 +30,7 @@ export interface PredictionResponse {
   average_confidence?: number
 }
 
-export interface Label {
-  id: string
-  name: string
-  description: string
-  category: string
-  difficulty: "beginner" | "intermediate" | "advanced"
-  sequence?: any[]; // Optional: A sequence associated with the label, structure might vary or be undefined.
-}
+export type Label = string;
 
 export interface PredictionRecord {
   id: string
@@ -80,90 +73,18 @@ export interface GlobalStats {
 
 // Datos dummy para fallback
 const DUMMY_LABELS: Label[] = [
-  {
-    id: "1",
-    name: "Tengo fiebre",
-    description: "Señas para indicar que tienes fiebre",
-    category: "Síntomas",
-    difficulty: "beginner",
-  },
-  {
-    id: "2",
-    name: "Me duele la cabeza",
-    description: "Señas para indicar dolor de cabeza",
-    category: "Síntomas",
-    difficulty: "beginner",
-  },
-  {
-    id: "3",
-    name: "Tengo tos",
-    description: "Señas para indicar que tienes tos",
-    category: "Síntomas",
-    difficulty: "beginner",
-  },
-  {
-    id: "4",
-    name: "Necesito medicamentos",
-    description: "Señas para solicitar medicamentos",
-    category: "Solicitudes",
-    difficulty: "intermediate",
-  },
-  {
-    id: "5",
-    name: "Tengo alergia",
-    description: "Señas para indicar que tienes una alergia",
-    category: "Síntomas",
-    difficulty: "intermediate",
-  },
-  {
-    id: "6",
-    name: "Me siento mareado",
-    description: "Señas para indicar mareo o vértigo",
-    category: "Síntomas",
-    difficulty: "intermediate",
-  },
-  {
-    id: "7",
-    name: "Necesito un intérprete",
-    description: "Señas para solicitar un intérprete",
-    category: "Solicitudes",
-    difficulty: "beginner",
-  },
-  {
-    id: "8",
-    name: "Tengo diabetes",
-    description: "Señas para comunicar que tienes diabetes",
-    category: "Condiciones",
-    difficulty: "advanced",
-  },
-  {
-    id: "9",
-    name: "Soy alérgico a la penicilina",
-    description: "Señas para comunicar alergia a medicamentos",
-    category: "Condiciones",
-    difficulty: "advanced",
-  },
-  {
-    id: "10",
-    name: "Necesito ayuda",
-    description: "Señas para solicitar asistencia general",
-    category: "Solicitudes",
-    difficulty: "beginner",
-  },
-  {
-    id: "11",
-    name: "Tengo dolor de estómago",
-    description: "Señas para indicar dolor abdominal",
-    category: "Síntomas",
-    difficulty: "intermediate",
-  },
-  {
-    id: "12",
-    name: "Estoy embarazada",
-    description: "Señas para comunicar embarazo",
-    category: "Condiciones",
-    difficulty: "intermediate",
-  },
+  "Tengo fiebre",
+  "Me duele la cabeza",
+  "Tengo tos",
+  "Necesito medicamentos",
+  "Tengo alergia",
+  "Me siento mareado",
+  "Necesito un intérprete",
+  "Tengo diabetes",
+  "Soy alérgico a la penicilina",
+  "Necesito ayuda",
+  "Tengo dolor de estómago",
+  "Estoy embarazada",
 ]
 
 // Función helper para generar datos dummy de records
@@ -175,7 +96,7 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
     date.setDate(date.getDate() - daysAgo)
     date.setHours(date.getHours() - hoursAgo)
 
-    const expectedLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)].name
+    const expectedLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
     const evaluationRandom = Math.random()
 
     let evaluation: "correct" | "doubtful" | "incorrect"
@@ -194,7 +115,7 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
       evaluation = "incorrect"
       let incorrectLabel
       do {
-        incorrectLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)].name
+        incorrectLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
       } while (incorrectLabel === expectedLabel)
       predictedLabel = incorrectLabel
       confidence = 0.3 + Math.random() * 0.2
@@ -222,14 +143,14 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
 
 // Función helper para generar datos dummy de progreso
 const generateDummyProgress = (): ProgressData[] => {
-  return DUMMY_LABELS.map((label) => {
+  return DUMMY_LABELS.map((label_name) => {
     const totalAttempts = Math.floor(Math.random() * 20) + 1
     const correctAttempts = Math.floor(totalAttempts * (0.3 + Math.random() * 0.5))
     const doubtfulAttempts = Math.floor((totalAttempts - correctAttempts) * 0.6)
     const incorrectAttempts = totalAttempts - correctAttempts - doubtfulAttempts
 
     return {
-      label_name: label.name,
+      label_name: label_name,
       total_attempts: totalAttempts,
       correct_attempts: correctAttempts,
       doubtful_attempts: doubtfulAttempts,
@@ -326,7 +247,7 @@ class ApiService {
       confidence = 0.5 + Math.random() * 0.25
     } else {
       evaluation = "incorrect"
-      const possibleLabels = DUMMY_LABELS.map((l) => l.name).filter((name) => name !== data.expected_label)
+      const possibleLabels = DUMMY_LABELS.filter((name) => name !== data.expected_label)
       predictedLabel = possibleLabels[Math.floor(Math.random() * possibleLabels.length)]
       confidence = 0.3 + Math.random() * 0.2
     }
