@@ -6,11 +6,10 @@ import { CameraModule } from "@/components/camera-module"
 import { PredictionResult } from "@/components/prediction-result"
 import { LabelCard } from "@/components/label-card"
 import { useLabels } from "@/hooks/use-labels"
-import type { Label } from "@/store/use-store"
-import { type PredictionResponse } from "@/lib/api"; // Added import
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import type { Label } from "@/store/use-store"; // Label is now string
+import { type PredictionResponse } from "@/lib/api";
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+// Badge and Tabs are no longer used directly here for categories/difficulty
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
 
@@ -18,55 +17,45 @@ export default function PracticePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const labelId = searchParams.get("label")
-  const { labels, isLoading } = useLabels()
-  const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
+  const { labels, isLoading } = useLabels() // labels is string[]
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null) // Updated type
   const [searchTerm, setSearchTerm] = useState("")
-  const [filteredLabels, setFilteredLabels] = useState<Label[]>([])
-  const [activeCategory, setActiveCategory] = useState<string>("all")
+  const [filteredLabels, setFilteredLabels] = useState<string[]>([]) // Updated type
+  // activeCategory and categories removed
   const [predictionResult, setPredictionResult] = useState<PredictionResponse | null>(null)
 
   // Asegurarnos de que labels sea un array
   const safeLabels = Array.isArray(labels) ? labels : []
 
-  // Find unique categories
-  const categories = ["all", ...Array.from(new Set(safeLabels.map((label) => label.category)))]
-
-  // Filter labels based on search and category
+  // Filter labels based on search
   useEffect(() => {
     const safeLabels = Array.isArray(labels) ? labels : []
     let filtered = [...safeLabels]
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (label) =>
-          label.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          label.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+      filtered = filtered.filter((label) => label.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
-    if (activeCategory !== "all") {
-      filtered = filtered.filter((label) => label.category === activeCategory)
-    }
-
+    // Category filtering removed
     setFilteredLabels(filtered)
-  }, [labels, searchTerm, activeCategory])
+  }, [labels, searchTerm]) // activeCategory removed from dependencies
 
   // Set selected label from URL param
   useEffect(() => {
     const safeLabels = Array.isArray(labels) ? labels : []
     if (labelId && safeLabels.length > 0) {
-      const label = safeLabels.find((l) => l.id === labelId)
+      const label = safeLabels.find((l) => l === labelId) // Updated find logic
       if (label) {
         setSelectedLabel(label)
       }
     }
   }, [labelId, labels])
 
-  const handleLabelSelect = (label: Label) => {
+  const handleLabelSelect = (label: string) => { // Updated type
     setSelectedLabel(label)
     setPredictionResult(null)
     // Update URL to reflect selected label
-    router.push(`/practice?label=${label.id}`)
+    router.push(`/practice?label=${label}`) // Updated URL param
   }
 
   const handlePredictionComplete = (result: PredictionResponse) => {
@@ -86,20 +75,20 @@ export default function PracticePage() {
     if (!selectedLabel) return
 
     const safeLabels = Array.isArray(labels) ? labels : []
-    const currentIndex = safeLabels.findIndex((label) => label.id === selectedLabel.id)
+    const currentIndex = safeLabels.findIndex((l) => l === selectedLabel) // Updated findIndex logic
 
     if (currentIndex !== -1 && currentIndex < safeLabels.length - 1) {
       const nextLabel = safeLabels[currentIndex + 1]
       setSelectedLabel(nextLabel)
       setPredictionResult(null)
-      router.push(`/practice?label=${nextLabel.id}`)
+      router.push(`/practice?label=${nextLabel}`) // Updated URL param
     } else {
       // If it's the last lesson, go to the first one or show completion message
       const firstLabel = safeLabels[0]
       if (firstLabel) {
         setSelectedLabel(firstLabel)
         setPredictionResult(null)
-        router.push(`/practice?label=${firstLabel.id}`)
+        router.push(`/practice?label=${firstLabel}`) // Updated URL param
       }
     }
   }
@@ -123,40 +112,29 @@ export default function PracticePage() {
                 />
               </div>
 
-              <Tabs defaultValue="all" value={activeCategory} onValueChange={setActiveCategory}>
-                <TabsList className="mb-4 flex flex-wrap h-auto">
-                  {categories.map((category, index) => (
-                    <TabsTrigger key={`${category}-${index}`} value={category} className="mb-1">
-                      {category === "all" ? "Todas" : category}
-                    </TabsTrigger>
+              {/* Tabs for category filtering removed */}
+              {isLoading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="w-full h-[200px]" />
                   ))}
-                </TabsList>
-
-                <TabsContent value={activeCategory} className="mt-0">
-                  {isLoading ? (
-                    <div className="space-y-4">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <Skeleton key={i} className="w-full h-[200px]" />
-                      ))}
-                    </div>
-                  ) : filteredLabels.length === 0 ? (
-                    <div className="text-center py-8 border rounded-lg">
-                      <p className="text-muted-foreground">No se encontraron señas</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                      {filteredLabels.map((label) => (
-                        <LabelCard
-                          key={label.id}
-                          label={label}
-                          onSelect={() => handleLabelSelect(label)}
-                          isSelected={selectedLabel?.id === label.id}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+                </div>
+              ) : filteredLabels.length === 0 ? (
+                <div className="text-center py-8 border rounded-lg">
+                  <p className="text-muted-foreground">No se encontraron señas</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  {filteredLabels.map((label) => (
+                    <LabelCard
+                      key={label} // Updated key
+                      label={label} // label is now string
+                      onSelect={() => handleLabelSelect(label)}
+                      isSelected={selectedLabel === label} // Updated isSelected logic
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -165,39 +143,25 @@ export default function PracticePage() {
             <div>
               <h2 className="text-2xl font-bold mb-4">Practica la seña</h2>
 
-              {selectedLabel ? (
+              {selectedLabel ? ( // selectedLabel is now string | null
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <h3 className="text-xl font-medium">{selectedLabel.name}</h3>
-                    <Badge variant="outline">{selectedLabel.category}</Badge>
-                    <Badge
-                      className={
-                        selectedLabel.difficulty === "beginner"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                          : selectedLabel.difficulty === "intermediate"
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
-                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                      }
-                    >
-                      {selectedLabel.difficulty === "beginner"
-                        ? "Principiante"
-                        : selectedLabel.difficulty === "intermediate"
-                          ? "Intermedio"
-                          : "Avanzado"}
-                    </Badge>
+                    <h3 className="text-xl font-medium">{selectedLabel}</h3> {/* Display selectedLabel directly */}
+                    {/* Badges for category and difficulty removed */}
                   </div>
 
                   {predictionResult ? (
                     <div className="flex justify-center">
                       <PredictionResult
                         result={predictionResult}
-                        expectedLabel={selectedLabel.name}
+                        expectedLabel={selectedLabel} // Pass selectedLabel string
                         onClose={handleClosePrediction}
                         onRepeat={handleRepeat}
                         onNextLesson={handleNextLesson}
                       />
                     </div>
                   ) : (
+                    // CameraModule expects selectedLabel: string, which is now correct
                     <CameraModule selectedLabel={selectedLabel} onPredictionComplete={handlePredictionComplete} />
                   )}
                 </div>
