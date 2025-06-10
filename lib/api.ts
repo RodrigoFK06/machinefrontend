@@ -163,7 +163,7 @@ const generateDummyProgress = (): ProgressData[] => {
   }).filter((p) => p.total_attempts > 0)
 }
 
-// Headers estándar para todas las llamadas API (incluyendo ngrok)
+// Headers estándar para todas las llamadas API
 const getApiHeaders = (additionalHeaders: Record<string, string> = {}): Record<string, string> => {
   return {
     "Content-Type": "application/json", // Still needed for POST/PUT to our /api routes
