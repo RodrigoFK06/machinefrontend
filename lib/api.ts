@@ -12,7 +12,7 @@
  */
 // API Service - Centraliza todas las llamadas a la API con fallback a datos dummy
 
-const API_BASE_URL = "/api"; // Calls are now proxied through Next.js API routes
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://machinelear.onrender.com"; // Calls are now proxied through Next.js API routes
 
 // Tipos para las respuestas de la API
 export interface PredictionRequest {
