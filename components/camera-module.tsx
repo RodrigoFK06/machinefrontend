@@ -23,6 +23,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   const [isRecording, setIsRecording] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [frames, setFrames] = useState<number[][]>([])
+  const framesRef = useRef<number[][]>([])
   const countdownRef = useRef<NodeJS.Timeout | null>(null)
   const recordingRef = useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
@@ -32,11 +33,13 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   const handleFrame = (imageData: ImageData) => {
     if (isRecording) {
       setFrames((prevFrames) => {
-        // Collects up to NUM_FRAMES, each processed by preprocessFrame (providing NUM_FEATURES features)
         if (prevFrames.length < NUM_FRAMES) {
-          const processedFrame = preprocessFrame(imageData) // from useCamera, now returns number[42]
-          return [...prevFrames, processedFrame]
+          const processedFrame = preprocessFrame(imageData)
+          const newFrames = [...prevFrames, processedFrame]
+          framesRef.current = newFrames
+          return newFrames
         }
+        framesRef.current = prevFrames
         return prevFrames
       })
     }
@@ -67,6 +70,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
 
     setCountdown(3)
     setFrames([])
+    framesRef.current = []
 
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
@@ -106,10 +110,10 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   const submitRecording = useCallback(async () => {
     if (!selectedLabel) return
 
-    let sequenceToSubmit: number[][]
+    const capturedFrames = framesRef.current
 
     // Validate if the collected frames match the expected 35x42 structure
-    if (frames.length !== NUM_FRAMES || !frames.every((f) => f.length === NUM_FEATURES)) {
+    if (capturedFrames.length !== NUM_FRAMES || !capturedFrames.every((f) => f.length === NUM_FEATURES)) {
       toast({
         title: "Captura incompleta",
         description: "No se capturaron suficientes frames para la predicción.",
@@ -118,12 +122,14 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       setIsRecording(false)
       return
     }
-    sequenceToSubmit = frames
+    const sequenceToSubmit = capturedFrames
 
     // Clear frames for the next recording
     setFrames([])
+    framesRef.current = []
 
     try {
+      console.log("Enviando predicción...")
       const result = await predict({
         sequence: sequenceToSubmit, // This is now number[][], expected as 35x42 matrix
         expected_label: selectedLabel,
@@ -141,7 +147,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       })
       setIsRecording(false) // Safeguard
     }
-  }, [selectedLabel, frames, predict, onPredictionComplete, setFrames, toast]) // NUM_FRAMES & NUM_FEATURES are constants
+  }, [selectedLabel, predict, onPredictionComplete, toast]) // NUM_FRAMES & NUM_FEATURES are constants
 
   // Clean up on unmount
   useEffect(() => {
