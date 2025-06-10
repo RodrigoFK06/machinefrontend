@@ -6,16 +6,18 @@
  * It includes specific handling for potentially non-JSON health check responses.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BACKEND_BASE_URL } from "@/lib/server-config";
+import { BACKEND_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const backendUrl = `${BACKEND_BASE_URL}/health`;
+      const backendUrl = `${BACKEND_URL}/health`;
+      // ✅ backend URL via config
 
       const backendRes = await fetch(backendUrl, {
         method: "GET",
       });
+      // ✅ backend URL via config
 
       // For health checks, sometimes the status code is all that matters.
       // If the response body is not JSON or is empty, .json() might fail.

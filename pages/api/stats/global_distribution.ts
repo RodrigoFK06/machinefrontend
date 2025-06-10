@@ -5,17 +5,19 @@
  * and securely communicate with the backend services.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BACKEND_BASE_URL } from "@/lib/server-config";
+import { BACKEND_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       // This endpoint does not seem to require query parameters from the client.
-      const backendUrl = `${BACKEND_BASE_URL}/stats/global_distribution`;
+      const backendUrl = `${BACKEND_URL}/stats/global_distribution`;
+      // ✅ backend URL via config
 
       const backendRes = await fetch(backendUrl, {
         method: "GET",
       });
+      // ✅ backend URL via config
 
       if (!backendRes.ok) {
         let errorBody = await backendRes.text();
