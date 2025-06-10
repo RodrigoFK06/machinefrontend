@@ -5,19 +5,13 @@
  * and securely communicate with the backend services.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-
-// TODO: Consider moving this to an environment variable for the Next.js server
-const NGROK_BACKEND_URL = "https://7a96-2800-200-fdd0-2611-f82b-705-e365-f53.ngrok-free.app";
+import { BACKEND_BASE_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const backendRes = await fetch(`${NGROK_BACKEND_URL}/labels`, {
+      const backendRes = await fetch(`${BACKEND_BASE_URL}/labels`, {
         method: "GET",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          // Add any other headers your backend might expect for GET requests, if any
-        },
       });
 
       // It's good practice to check if the backend response was successful
