@@ -48,14 +48,16 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
         )
         handLandmarkerRef.current = await vision.HandLandmarker.createFromOptions(resolver, {
           baseOptions: {
-            modelAssetPath:
-              "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm/hand_landmarker.task",
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-assets/hand_landmarker.task",
           },
           runningMode: "IMAGE",
           numHands: 2,
         })
       } catch (err) {
         console.error("Failed to load MediaPipe HandLandmarker", err)
+        setError(
+          "Error al cargar el modelo de detección de manos. Revisa tu conexión e intenta nuevamente."
+        )
       }
     }
 
