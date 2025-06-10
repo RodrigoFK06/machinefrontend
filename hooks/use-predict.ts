@@ -9,6 +9,7 @@ export function usePredict() {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
   const addRecord = useStore((state) => state.addRecord)
+  const labels = useStore((state) => state.labels)
 
   const predict = async (data: Omit<PredictionRequest, "nickname">): Promise<PredictionResponse | null> => {
     setIsLoading(true)
@@ -18,8 +19,20 @@ export function usePredict() {
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
       // Preparar datos para la API incluyendo nickname
+      let expectedLabel = data.expected_label
+      if (!expectedLabel) {
+        console.warn("❌ expected_label is undefined. Using fallback label.")
+        expectedLabel = labels?.[0] || "me_duele_la_cabeza"
+        toast({
+          title: "Etiqueta faltante",
+          description: `Se us\u00f3 \"${expectedLabel}\" como se\u00f1a por defecto.",
+          variant: "destructive",
+        })
+      }
+
       const requestData: PredictionRequest = {
         ...data,
+        expected_label: expectedLabel,
         nickname: getUserNickname(),
       }
 
