@@ -6,20 +6,22 @@
  * and securely communicate with the backend services.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BACKEND_BASE_URL } from "@/lib/server-config";
+import { BACKEND_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const { nickname } = req.query;
       
-      const backendUrl = new URL(`${BACKEND_BASE_URL}/progress`);
+      const backendUrl = new URL(`${BACKEND_URL}/progress`);
+      // ✅ backend URL via config
       if (nickname) backendUrl.searchParams.append("nickname", Array.isArray(nickname) ? nickname[0] : nickname);
       // Add other query parameters if the backend /progress endpoint expects them
 
       const backendRes = await fetch(backendUrl.toString(), {
         method: "GET",
       });
+      // ✅ backend URL via config
 
       if (!backendRes.ok) {
         let errorBody = await backendRes.text();

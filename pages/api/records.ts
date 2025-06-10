@@ -6,7 +6,7 @@
  * and securely communicate with the backend services.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-import { BACKEND_BASE_URL } from "@/lib/server-config";
+import { BACKEND_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -15,7 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { nickname, page, limit } = req.query;
       
       // Construct the URL for the backend, forwarding query parameters
-      const backendUrl = new URL(`${BACKEND_BASE_URL}/records`);
+      const backendUrl = new URL(`${BACKEND_URL}/records`);
+      // ✅ backend URL via config
       if (nickname) backendUrl.searchParams.append("nickname", Array.isArray(nickname) ? nickname[0] : nickname);
       if (page) backendUrl.searchParams.append("page", Array.isArray(page) ? page[0] : page);
       if (limit) backendUrl.searchParams.append("limit", Array.isArray(limit) ? limit[0] : limit);
@@ -23,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const backendRes = await fetch(backendUrl.toString(), {
         method: "GET",
       });
+      // ✅ backend URL via config
 
       if (!backendRes.ok) {
         let errorBody = await backendRes.text();

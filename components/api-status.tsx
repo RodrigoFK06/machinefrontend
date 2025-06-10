@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { Settings, Wifi, WifiOff, User } from "lucide-react"
 import { getUserNickname, setUserNickname } from "@/lib/api"
+import { BACKEND_URL } from "@/lib/server-config"
 import { useToast } from "@/components/ui/use-toast"
 
 export function ApiStatus() {
@@ -37,8 +38,9 @@ export function ApiStatus() {
 
   const checkApiStatus = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://machinelear.onrender.com"
+      const apiUrl = BACKEND_URL
       const response = await fetch(`${apiUrl}/health`, {
+        // ✅ backend URL via config
         method: "GET",
         headers: {
           "Content-Type": "application/json",

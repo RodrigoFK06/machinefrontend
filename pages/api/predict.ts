@@ -6,12 +6,13 @@
  */
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { BACKEND_BASE_URL } from "@/lib/server-config";
+import { BACKEND_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const backendRes = await fetch(`${BACKEND_BASE_URL}/predict`, {
+      const backendRes = await fetch(`${BACKEND_URL}/predict`, {
+        // ✅ backend URL via config
         method: "POST",
         headers: {
           "Content-Type": "application/json",
