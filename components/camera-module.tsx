@@ -109,17 +109,16 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     let sequenceToSubmit: number[][]
 
     // Validate if the collected frames match the expected 35x42 structure
-    if (frames.length === NUM_FRAMES && frames.every((frame) => frame.length === NUM_FEATURES)) {
-      sequenceToSubmit = frames
-    } else {
-      console.warn(
-        `Frame data is not as expected (got ${frames.length} frames, expected ${NUM_FRAMES} of ${NUM_FEATURES} features). Using dummy 35x42 data.`,
-      )
-      // Fallback to a dummy 35x42 matrix of random numbers
-      sequenceToSubmit = Array.from({ length: NUM_FRAMES }, () =>
-        Array.from({ length: NUM_FEATURES }, () => Math.random()),
-      )
+    if (frames.length !== NUM_FRAMES || !frames.every((f) => f.length === NUM_FEATURES)) {
+      toast({
+        title: "Captura incompleta",
+        description: "No se capturaron suficientes frames para la predicción.",
+        variant: "destructive",
+      })
+      setIsRecording(false)
+      return
     }
+    sequenceToSubmit = frames
 
     // Clear frames for the next recording
     setFrames([])
@@ -127,7 +126,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     try {
       const result = await predict({
         sequence: sequenceToSubmit, // This is now number[][], expected as 35x42 matrix
-        expected_label: selectedLabel.name,
+        expected_label: selectedLabel,
       })
 
       if (result && onPredictionComplete) {
@@ -203,7 +202,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
               {/* Selected label overlay */}
               {selectedLabel && (
                 <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg">
-                  <p className="font-medium text-sm">{selectedLabel.name}</p>
+                  <p className="font-medium text-sm">{selectedLabel}</p>
                 </div>
               )}
 

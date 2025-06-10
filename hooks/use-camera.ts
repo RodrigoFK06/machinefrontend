@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import type { HandLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
 
 type UseCameraOptions = {
   enabled?: boolean
@@ -15,6 +16,7 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameLoopRef = useRef<number | null>(null)
+  const handLandmarkerRef = useRef<HandLandmarker | null>(null)
 
   // Initialize camera
   useEffect(() => {
@@ -38,6 +40,27 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
 
     initCamera()
 
+    const initHandLandmarker = async () => {
+      try {
+        const vision = await import("@mediapipe/tasks-vision")
+        const resolver: FilesetResolver = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm",
+        )
+        handLandmarkerRef.current = await vision.HandLandmarker.createFromOptions(resolver, {
+          baseOptions: {
+            modelAssetPath:
+              "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm/hand_landmarker.task",
+          },
+          runningMode: "IMAGE",
+          numHands: 2,
+        })
+      } catch (err) {
+        console.error("Failed to load MediaPipe HandLandmarker", err)
+      }
+    }
+
+    initHandLandmarker()
+
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop())
@@ -45,6 +68,7 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
       if (frameLoopRef.current) {
         cancelAnimationFrame(frameLoopRef.current)
       }
+      handLandmarkerRef.current?.close?.()
     }
   }, [enabled])
 
@@ -61,7 +85,7 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
 
     const video = videoRef.current
     const canvas = canvasRef.current
-    const context = canvas.getContext("2d")
+    const context = canvas.getContext("2d", { willReadFrequently: true })
     if (!context) return
 
     let lastFrameTime = 0
@@ -99,14 +123,35 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
     }
   }, [stream, onFrame, frameRate])
 
-  // Mock function to simulate preprocessing frames to LSTM sequence.
-  // Each call to this function represents one row (42 features)
-  // of the final 35x42 matrix expected by the LSTM model.
+  // Process a frame with MediaPipe to obtain 42 features (21 points x/y per hand)
   const preprocessFrame = (imageData: ImageData): number[] => {
-    // In a real implementation, this would use TensorFlow.js or similar
-    // to extract pose keypoints and convert to a sequence.
-    // For now, we return a mock sequence of 42 random floats.
-    return Array.from({ length: 42 }, () => Math.random())
+    const landmarker = handLandmarkerRef.current
+    if (!landmarker) {
+      return Array(42).fill(0)
+    }
+
+    const tempCanvas = document.createElement("canvas")
+    tempCanvas.width = imageData.width
+    tempCanvas.height = imageData.height
+    const ctx = tempCanvas.getContext("2d")!
+    ctx.putImageData(imageData, 0, 0)
+
+    const result = landmarker.detect(tempCanvas)
+    const features: number[] = Array(42).fill(0)
+
+    if (result.landmarks && result.landmarks.length > 0) {
+      for (let h = 0; h < 2; h++) {
+        const hand = result.landmarks[h] || []
+        for (let i = 0; i < 21; i++) {
+          const idx = h * 42 + i * 2
+          const point = hand[i]
+          features[idx] = point ? point.x : 0
+          features[idx + 1] = point ? point.y : 0
+        }
+      }
+    }
+
+    return features
   }
 
   return {
