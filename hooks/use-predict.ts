@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useStore, type PredictionRecord } from "@/store/use-store"
@@ -13,7 +12,6 @@ export function usePredict() {
 
   const predict = async (data: Omit<PredictionRequest, "nickname">): Promise<PredictionResponse | null> => {
     setIsLoading(true)
-
     try {
       // Simulamos un pequeño retraso para UX
       await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -25,7 +23,7 @@ export function usePredict() {
         expectedLabel = labels?.[0] || "me_duele_la_cabeza"
         toast({
           title: "Etiqueta faltante",
-          description: `Se us\u00f3 \"${expectedLabel}\" como se\u00f1a por defecto.",
+          description: `Se usó "${expectedLabel}" como seña por defecto.`,
           variant: "destructive",
         })
       }
@@ -44,7 +42,6 @@ export function usePredict() {
 
       // Llamada real a la API con fallback automático
       const response = await apiService.predict(requestData)
-
       console.log("📊 Prediction response:", response)
 
       // Crear registro para el store local
@@ -62,7 +59,6 @@ export function usePredict() {
 
       // Añadir al store local para feedback inmediato
       addRecord(record)
-
       return response
     } catch (error) {
       console.error("❌ Error in prediction:", error)
