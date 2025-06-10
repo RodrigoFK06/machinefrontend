@@ -6,20 +6,15 @@
  * It includes specific handling for potentially non-JSON health check responses.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-
-// TODO: Consider moving this to an environment variable for the Next.js server
-const NGROK_BACKEND_URL = "https://7a96-2800-200-fdd0-2611-f82b-705-e365-f53.ngrok-free.app";
+import { BACKEND_BASE_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const backendUrl = `${NGROK_BACKEND_URL}/health`;
+      const backendUrl = `${BACKEND_BASE_URL}/health`;
 
       const backendRes = await fetch(backendUrl, {
         method: "GET",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-        },
       });
 
       // For health checks, sometimes the status code is all that matters.

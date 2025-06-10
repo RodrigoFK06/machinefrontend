@@ -37,12 +37,11 @@ export function ApiStatus() {
 
   const checkApiStatus = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://7a96-2800-200-fdd0-2611-f82b-705-e365-f53.ngrok-free.app"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://machinelear.onrender.com"
       const response = await fetch(`${apiUrl}/health`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true", // Evita advertencias de ngrok
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       })

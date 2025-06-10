@@ -6,9 +6,7 @@
  * and securely communicate with the backend services.
  */
 import type { NextApiRequest, NextApiResponse } from "next";
-
-// TODO: Consider moving this to an environment variable for the Next.js server
-const NGROK_BACKEND_URL = "https://7a96-2800-200-fdd0-2611-f82b-705-e365-f53.ngrok-free.app";
+import { BACKEND_BASE_URL } from "@/lib/server-config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -17,16 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { nickname, page, limit } = req.query;
       
       // Construct the URL for the backend, forwarding query parameters
-      const backendUrl = new URL(`${NGROK_BACKEND_URL}/records`);
+      const backendUrl = new URL(`${BACKEND_BASE_URL}/records`);
       if (nickname) backendUrl.searchParams.append("nickname", Array.isArray(nickname) ? nickname[0] : nickname);
       if (page) backendUrl.searchParams.append("page", Array.isArray(page) ? page[0] : page);
       if (limit) backendUrl.searchParams.append("limit", Array.isArray(limit) ? limit[0] : limit);
 
       const backendRes = await fetch(backendUrl.toString(), {
         method: "GET",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-        },
       });
 
       if (!backendRes.ok) {
