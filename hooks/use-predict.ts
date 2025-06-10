@@ -59,6 +59,11 @@ export function usePredict() {
 
       // Añadir al store local para feedback inmediato
       addRecord(record)
+      toast({
+        title: "✅ Resultado guardado correctamente",
+        description: `Se registró la práctica de ${response.predicted_label}`,
+      })
+
       return response
     } catch (error) {
       console.error("❌ Error in prediction:", error)
