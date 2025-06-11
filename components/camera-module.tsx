@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react" // Added useCallback
 import { useCamera } from "@/hooks/use-camera"
 import { usePredict } from "@/hooks/use-predict"
-import type { Label } from "@/store/use-store"
+import type { Label } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -141,8 +141,8 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     try {
       console.log("Enviando predicción...")
       const result = await predict({
-        sequence: sequenceToSubmit, // This is now number[][], expected as 35x42 matrix
-        expected_label: selectedLabel,
+        sequence: sequenceToSubmit,
+        expected_label: selectedLabel.name,
       })
 
       if (result && onPredictionComplete) {

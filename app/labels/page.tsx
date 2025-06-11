@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react"
 import { useLabels } from "@/hooks/use-labels"
 import { LabelCard } from "@/components/label-card"
+import type { Label } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
-// import type { Label } from "@/store/use-store"; // Label is now string via lib/api.ts
 
 export default function LabelsPage() {
-  const { labels, isLoading } = useLabels() // useLabels now returns string[]
+  const { labels, isLoading } = useLabels()
   const [searchTerm, setSearchTerm] = useState("")
-  const [filteredLabels, setFilteredLabels] = useState<string[]>([])
+  const [filteredLabels, setFilteredLabels] = useState<Label[]>([])
   // activeCategory and categories are removed
 
   // Filter labels based on search
@@ -21,7 +21,9 @@ export default function LabelsPage() {
     let filtered = [...safeLabels]
 
     if (searchTerm) {
-      filtered = filtered.filter((label) => label.toLowerCase().includes(searchTerm.toLowerCase()))
+      filtered = filtered.filter((label) =>
+        label.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
     }
 
     // Category filtering removed
@@ -57,7 +59,7 @@ export default function LabelsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredLabels.map((label) => (
-            <LabelCard key={label} label={label} /> // Key updated to label itself
+            <LabelCard key={label.id} label={label} />
           ))}
         </div>
       )}

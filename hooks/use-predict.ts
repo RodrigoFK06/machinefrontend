@@ -20,7 +20,7 @@ export function usePredict() {
       let expectedLabel = data.expected_label
       if (!expectedLabel) {
         console.warn("❌ expected_label is undefined. Using fallback label.")
-        expectedLabel = labels?.[0] || "me_duele_la_cabeza"
+        expectedLabel = labels?.[0]?.name || "me_duele_la_cabeza"
         toast({
           title: "Etiqueta faltante",
           description: `Se usó "${expectedLabel}" como seña por defecto.`,
