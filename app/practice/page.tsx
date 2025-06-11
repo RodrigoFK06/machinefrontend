@@ -6,8 +6,7 @@ import { CameraModule } from "@/components/camera-module"
 import { PredictionResult } from "@/components/prediction-result"
 import { LabelCard } from "@/components/label-card"
 import { useLabels } from "@/hooks/use-labels"
-// import type { Label } from "@/store/use-store"; // Label is now string
-import { type PredictionResponse } from "@/lib/api";
+import type { Label, PredictionResponse } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 // Badge and Tabs are no longer used directly here for categories/difficulty
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,11 +15,11 @@ import { Search } from "lucide-react"
 export default function PracticePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const labelId = searchParams.get("label")
-  const { labels, isLoading } = useLabels() // labels is string[]
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null) // Updated type
+  const labelId = searchParams?.get("label") ?? null
+  const { labels, isLoading } = useLabels()
+  const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filteredLabels, setFilteredLabels] = useState<string[]>([]) // Updated type
+  const [filteredLabels, setFilteredLabels] = useState<Label[]>([])
   // activeCategory and categories removed
   const [predictionResult, setPredictionResult] = useState<PredictionResponse | null>(null)
 
@@ -33,7 +32,9 @@ export default function PracticePage() {
     let filtered = [...safeLabels]
 
     if (searchTerm) {
-      filtered = filtered.filter((label) => label.toLowerCase().includes(searchTerm.toLowerCase()))
+      filtered = filtered.filter((label) =>
+        label.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
     }
 
     // Category filtering removed
@@ -44,18 +45,17 @@ export default function PracticePage() {
   useEffect(() => {
     const safeLabels = Array.isArray(labels) ? labels : []
     if (labelId && safeLabels.length > 0) {
-      const label = safeLabels.find((l) => l === labelId) // Updated find logic
+      const label = safeLabels.find((l) => l.id === labelId)
       if (label) {
         setSelectedLabel(label)
       }
     }
   }, [labelId, labels])
 
-  const handleLabelSelect = (label: string) => { // Updated type
+  const handleLabelSelect = (label: Label) => {
     setSelectedLabel(label)
     setPredictionResult(null)
-    // Update URL to reflect selected label
-    router.push(`/practice?label=${label}`) // Updated URL param
+    router.push(`/practice?label=${label.id}`)
   }
 
   const handlePredictionComplete = (result: PredictionResponse) => {
@@ -75,20 +75,20 @@ export default function PracticePage() {
     if (!selectedLabel) return
 
     const safeLabels = Array.isArray(labels) ? labels : []
-    const currentIndex = safeLabels.findIndex((l) => l === selectedLabel) // Updated findIndex logic
+    const currentIndex = safeLabels.findIndex((l) => l.id === selectedLabel.id)
 
     if (currentIndex !== -1 && currentIndex < safeLabels.length - 1) {
       const nextLabel = safeLabels[currentIndex + 1]
       setSelectedLabel(nextLabel)
       setPredictionResult(null)
-      router.push(`/practice?label=${nextLabel}`) // Updated URL param
+      router.push(`/practice?label=${nextLabel.id}`)
     } else {
       // If it's the last lesson, go to the first one or show completion message
       const firstLabel = safeLabels[0]
       if (firstLabel) {
         setSelectedLabel(firstLabel)
         setPredictionResult(null)
-        router.push(`/practice?label=${firstLabel}`) // Updated URL param
+        router.push(`/practice?label=${firstLabel.id}`)
       }
     }
   }
@@ -127,10 +127,10 @@ export default function PracticePage() {
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                   {filteredLabels.map((label) => (
                     <LabelCard
-                      key={label} // Updated key
-                      label={label} // label is now string
+                      key={label.id}
+                      label={label}
                       onSelect={() => handleLabelSelect(label)}
-                      isSelected={selectedLabel === label} // Updated isSelected logic
+                      isSelected={selectedLabel?.id === label.id}
                     />
                   ))}
                 </div>
@@ -143,10 +143,10 @@ export default function PracticePage() {
             <div>
               <h2 className="text-2xl font-bold mb-4">Practica la seña</h2>
 
-              {selectedLabel ? ( // selectedLabel is now string | null
+              {selectedLabel ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <h3 className="text-xl font-medium">{selectedLabel}</h3> {/* Display selectedLabel directly */}
+                    <h3 className="text-xl font-medium">{selectedLabel.name}</h3>
                     {/* Badges for category and difficulty removed */}
                   </div>
 
@@ -154,14 +154,13 @@ export default function PracticePage() {
                     <div className="flex justify-center">
                       <PredictionResult
                         result={predictionResult}
-                        expectedLabel={selectedLabel} // Pass selectedLabel string
+                        expectedLabel={selectedLabel.name}
                         onClose={handleClosePrediction}
                         onRepeat={handleRepeat}
                         onNextLesson={handleNextLesson}
                       />
                     </div>
                   ) : (
-                    // CameraModule expects selectedLabel: string, which is now correct
                     <CameraModule selectedLabel={selectedLabel} onPredictionComplete={handlePredictionComplete} />
                   )}
                 </div>

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { cn } from "@/lib/utils"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 
 interface AnimatedCardsProps {
   className?: string
@@ -15,9 +15,9 @@ interface AnimatedCardsProps {
 export function AnimatedCards({ className, children, interval = 3000, direction = "horizontal" }: AnimatedCardsProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout>()
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const nextCard = () => {
+  const nextCard = useCallback(() => {
     if (isAnimating) return
 
     setIsAnimating(true)
@@ -26,7 +26,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
     setTimeout(() => {
       setIsAnimating(false)
     }, 600) // Match this with the CSS transition duration
-  }
+  }, [isAnimating, children.length])
 
   useEffect(() => {
     timerRef.current = setInterval(nextCard, interval)
@@ -36,7 +36,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
         clearInterval(timerRef.current)
       }
     }
-  }, [interval, isAnimating, children.length])
+  }, [nextCard, interval])
 
   const getCardClassName = (index: number) => {
     if (index === activeIndex) {

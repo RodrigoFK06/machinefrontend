@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState, useMemo } from "react"
+import { useParams } from "next/navigation"
 import { useLabels } from "@/hooks/use-labels"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,28 +9,30 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
-import type { Label } from "@/store/use-store"
+import type { Label } from "@/lib/api"
+
+const DEFAULT_LABEL: Label = {
+  id: "",
+  name: "",
+  description: "",
+  difficulty: "default",
+  category: "",
+}
 
 export default function LabelDetailPage() {
-  const params = useParams()
-  const router = useRouter()
+  const params = useParams<{ id?: string }>() || {}
   const { labels, isLoading } = useLabels()
-  const [label, setLabel] = useState<Label | null>(null)
+  const [label, setLabel] = useState<Label>(DEFAULT_LABEL)
 
   // Asegurarnos de que labels sea un array
-  const safeLabels = Array.isArray(labels) ? labels : []
+  const safeLabels = useMemo(() => (Array.isArray(labels) ? labels : []), [labels])
 
   useEffect(() => {
     if (safeLabels.length > 0 && params.id) {
       const foundLabel = safeLabels.find((l) => l.id === params.id)
-      if (foundLabel) {
-        setLabel(foundLabel)
-      } else {
-        // Si no se encuentra la etiqueta, redirigir a la página de etiquetas
-        router.push("/labels")
-      }
+      setLabel(foundLabel ?? DEFAULT_LABEL)
     }
-  }, [safeLabels, params.id, router])
+  }, [safeLabels, params.id])
 
   // Función para generar un color de fondo basado en el nombre de la etiqueta
   const getBackgroundColor = (name: string) => {
@@ -49,12 +51,14 @@ export default function LabelDetailPage() {
     beginner: "Principiante",
     intermediate: "Intermedio",
     advanced: "Avanzado",
+    default: "Desconocido",
   }
 
   const difficultyColor = {
     beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     intermediate: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
     advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    default: "bg-muted text-foreground",
   }
 
   if (isLoading) {
@@ -82,7 +86,7 @@ export default function LabelDetailPage() {
     )
   }
 
-  if (!label) {
+  if (!isLoading && !label.id) {
     return (
       <div className="container py-8">
         <div className="flex items-center mb-6">
@@ -130,12 +134,16 @@ export default function LabelDetailPage() {
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold mb-2">Descripción</h2>
-            <p className="text-muted-foreground">{label.description}</p>
+            {label.description?.length ? (
+              <p className="text-muted-foreground">{label.description}</p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{label.category}</Badge>
-            <Badge className={difficultyColor[label.difficulty]}>{difficultyText[label.difficulty]}</Badge>
+            <Badge variant="outline">{label.category ?? "Sin categoría"}</Badge>
+            <Badge className={difficultyColor[label.difficulty ?? "default"]}>
+              {difficultyText[label.difficulty ?? "default"]}
+            </Badge>
           </div>
 
           <div className="space-y-2">
