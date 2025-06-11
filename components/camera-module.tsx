@@ -20,6 +20,7 @@ const NUM_FRAMES = 35
 const NUM_FEATURES = 42
 
 export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModuleProps) {
+  const [cameraEnabled, setCameraEnabled] = useState(false) // ✅ Nuevo estado para controlar la cámara
   const [isRecording, setIsRecording] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [frames, setFrames] = useState<number[][]>([])
@@ -51,8 +52,6 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     }
   }
 
-
-
   const {
     videoRef,
     canvasRef,
@@ -60,11 +59,10 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     error: cameraError,
     preprocessFrame,
   } = useCamera({
-    enabled: isRecording, // ✅ solo graba cuando se está grabando
+    enabled: cameraEnabled, // ✅ Ahora usa cameraEnabled en lugar de isRecording
     onFrame: handleFrame,
     frameRate: 15,
   })
-
 
   // Start recording with countdown
   const startRecording = () => {
@@ -79,20 +77,24 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
 
     setFrames([])
     framesRef.current = []
-    setIsRecording(true) // ✅ activa cámara desde ya
-
+    setCameraEnabled(true) // ✅ Activa cámara de inmediato
     setCountdown(3)
+
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(countdownRef.current!)
+          setCountdown(null)
+          setIsRecording(true) // ✅ Ahora sí comienza la grabación real
+
           console.log("🎥 Grabación iniciada, esperando capturar frames...")
 
-          if (recordingRef.current) clearTimeout(recordingRef.current)
           recordingRef.current = setTimeout(() => {
             setIsRecording(false)
+            setCameraEnabled(false) // ✅ Apaga cámara al terminar
             submitRecording()
           }, 3000)
+
           return null
         }
         return prev - 1
@@ -103,6 +105,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   // Stop recording
   const stopRecording = () => {
     setIsRecording(false)
+    setCameraEnabled(false) // ✅ También apaga la cámara
     if (countdownRef.current) {
       clearInterval(countdownRef.current)
       setCountdown(null)
