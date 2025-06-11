@@ -98,7 +98,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
         return prev - 1
       })
     }, 1000)
-
+  }
 
   // Stop recording
   const stopRecording = () => {
