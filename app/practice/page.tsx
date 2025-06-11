@@ -15,7 +15,7 @@ import { Search } from "lucide-react"
 export default function PracticePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const labelId = searchParams.get("label")
+  const labelId = searchParams?.get("label") ?? null
   const { labels, isLoading } = useLabels()
   const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
   const [searchTerm, setSearchTerm] = useState("")

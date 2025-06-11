@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useLabels } from "@/hooks/use-labels"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,7 @@ export default function LabelDetailPage() {
   const [label, setLabel] = useState<Label | null>(null)
 
   // Asegurarnos de que labels sea un array
-  const safeLabels = Array.isArray(labels) ? labels : []
+  const safeLabels = useMemo(() => (Array.isArray(labels) ? labels : []), [labels])
 
   useEffect(() => {
     if (safeLabels.length > 0 && params.id) {
@@ -49,12 +49,14 @@ export default function LabelDetailPage() {
     beginner: "Principiante",
     intermediate: "Intermedio",
     advanced: "Avanzado",
+    default: "Desconocido",
   }
 
   const difficultyColor = {
     beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     intermediate: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
     advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    default: "bg-muted text-foreground",
   }
 
   if (isLoading) {
@@ -135,7 +137,9 @@ export default function LabelDetailPage() {
 
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{label.category}</Badge>
-            <Badge className={difficultyColor[label.difficulty]}>{difficultyText[label.difficulty]}</Badge>
+            <Badge className={difficultyColor[label.difficulty ?? "default"]}>
+              {difficultyText[label.difficulty ?? "default"]}
+            </Badge>
           </div>
 
           <div className="space-y-2">

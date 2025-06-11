@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import type { HandLandmarker, FilesetResolver } from "@mediapipe/tasks-vision"
+import type { HandLandmarker } from "@mediapipe/tasks-vision"
 
 type UseCameraOptions = {
   enabled?: boolean
@@ -43,7 +43,7 @@ export function useCamera({ enabled = true, onFrame, frameRate = 10 }: UseCamera
     const initHandLandmarker = async () => {
       try {
         const vision = await import("@mediapipe/tasks-vision")
-        const resolver: FilesetResolver = await vision.FilesetResolver.forVisionTasks(
+        const resolver = await vision.FilesetResolver.forVisionTasks(
           "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm",
         )
         handLandmarkerRef.current = await vision.HandLandmarker.createFromOptions(resolver, {

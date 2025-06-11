@@ -222,7 +222,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
               {/* Selected label overlay */}
               {selectedLabel && (
                 <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg">
-                  <p className="font-medium text-sm">{selectedLabel}</p>
+                  <p className="font-medium text-sm">{selectedLabel.name}</p>
                 </div>
               )}
 
