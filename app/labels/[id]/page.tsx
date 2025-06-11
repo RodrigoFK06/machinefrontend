@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
-import type { Label } from "@/store/use-store"
+import type { Label } from "@/lib/api"
 
 export default function LabelDetailPage() {
-  const params = useParams()
+  const params = useParams<{ id?: string }>() || {}
   const router = useRouter()
   const { labels, isLoading } = useLabels()
   const [label, setLabel] = useState<Label | null>(null)

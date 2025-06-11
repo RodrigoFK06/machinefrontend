@@ -30,7 +30,13 @@ export interface PredictionResponse {
   average_confidence?: number
 }
 
-export type Label = string;
+export interface Label {
+  id: string
+  name: string
+  description: string
+  category?: string
+  difficulty?: "beginner" | "intermediate" | "advanced"
+}
 
 export interface PredictionRecord {
   id: string
@@ -73,18 +79,90 @@ export interface GlobalStats {
 
 // Datos dummy para fallback
 const DUMMY_LABELS: Label[] = [
-  "Tengo fiebre",
-  "Me duele la cabeza",
-  "Tengo tos",
-  "Necesito medicamentos",
-  "Tengo alergia",
-  "Me siento mareado",
-  "Necesito un intérprete",
-  "Tengo diabetes",
-  "Soy alérgico a la penicilina",
-  "Necesito ayuda",
-  "Tengo dolor de estómago",
-  "Estoy embarazada",
+  {
+    id: "tengo_fiebre",
+    name: "Tengo fiebre",
+    description: "Indica que el paciente tiene fiebre",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "me_duele_la_cabeza",
+    name: "Me duele la cabeza",
+    description: "Comunica dolor de cabeza",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "tengo_tos",
+    name: "Tengo tos",
+    description: "Indica tos o irritación",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "necesito_medicamentos",
+    name: "Necesito medicamentos",
+    description: "Solicitar medicación o receta",
+    category: "Tratamiento",
+    difficulty: "intermediate",
+  },
+  {
+    id: "tengo_alergia",
+    name: "Tengo alergia",
+    description: "Avisar de una reacción alérgica",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "me_siento_mareado",
+    name: "Me siento mareado",
+    description: "Expresar mareo o vértigo",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "necesito_interprete",
+    name: "Necesito un intérprete",
+    description: "Pedir ayuda a un intérprete de señas",
+    category: "Asistencia",
+    difficulty: "advanced",
+  },
+  {
+    id: "tengo_diabetes",
+    name: "Tengo diabetes",
+    description: "Informar condición de diabetes",
+    category: "Condiciones",
+    difficulty: "intermediate",
+  },
+  {
+    id: "alergico_penicilina",
+    name: "Soy alérgico a la penicilina",
+    description: "Advertir sobre alergia a penicilina",
+    category: "Condiciones",
+    difficulty: "intermediate",
+  },
+  {
+    id: "necesito_ayuda",
+    name: "Necesito ayuda",
+    description: "Solicitar ayuda de manera general",
+    category: "Asistencia",
+    difficulty: "beginner",
+  },
+  {
+    id: "dolor_estomago",
+    name: "Tengo dolor de estómago",
+    description: "Expresar molestia estomacal",
+    category: "Síntomas",
+    difficulty: "beginner",
+  },
+  {
+    id: "estoy_embarazada",
+    name: "Estoy embarazada",
+    description: "Indicar embarazo",
+    category: "Condiciones",
+    difficulty: "beginner",
+  },
 ]
 
 // Función helper para generar datos dummy de records
@@ -96,7 +174,8 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
     date.setDate(date.getDate() - daysAgo)
     date.setHours(date.getHours() - hoursAgo)
 
-    const expectedLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
+    const expected = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
+    const expectedLabel = expected.name
     const evaluationRandom = Math.random()
 
     let evaluation: "correct" | "doubtful" | "incorrect"
@@ -113,11 +192,11 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
       confidence = 0.5 + Math.random() * 0.25
     } else {
       evaluation = "incorrect"
-      let incorrectLabel
+      let incorrect
       do {
-        incorrectLabel = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
-      } while (incorrectLabel === expectedLabel)
-      predictedLabel = incorrectLabel
+        incorrect = DUMMY_LABELS[Math.floor(Math.random() * DUMMY_LABELS.length)]
+      } while (incorrect.name === expectedLabel)
+      predictedLabel = incorrect.name
       confidence = 0.3 + Math.random() * 0.2
     }
 
@@ -143,14 +222,14 @@ const generateDummyRecords = (count = 50): PredictionRecord[] => {
 
 // Función helper para generar datos dummy de progreso
 const generateDummyProgress = (): ProgressData[] => {
-  return DUMMY_LABELS.map((label_name) => {
+  return DUMMY_LABELS.map((label) => {
     const totalAttempts = Math.floor(Math.random() * 20) + 1
     const correctAttempts = Math.floor(totalAttempts * (0.3 + Math.random() * 0.5))
     const doubtfulAttempts = Math.floor((totalAttempts - correctAttempts) * 0.6)
     const incorrectAttempts = totalAttempts - correctAttempts - doubtfulAttempts
 
     return {
-      label_name: label_name,
+      label_name: label.name,
       total_attempts: totalAttempts,
       correct_attempts: correctAttempts,
       doubtful_attempts: doubtfulAttempts,
@@ -234,7 +313,7 @@ class ApiService {
     try {
       console.log("👉 Real POST to backend:", data)
 
-      const response = await fetch("https://machinelear.onrender.com/predict", {
+      const response = await fetch(`${API_BASE_URL}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

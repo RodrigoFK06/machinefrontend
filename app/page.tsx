@@ -327,7 +327,7 @@ export default function HomePage() {
                           <Sparkles key={i} className="inline-block h-5 w-5 text-yellow-400 mr-1" />
                         ))}
                       </div>
-                      <p className="text-lg italic mb-6">"{testimonial.quote}"</p>
+                      <p className="text-lg italic mb-6">&quot;{testimonial.quote}&quot;</p>
                     </div>
                     <div>
                       <p className="font-semibold">{testimonial.author}</p>
@@ -373,7 +373,7 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <p>
-                  Aprende frases como "tengo fiebre y tos", "me duele la cabeza" y recibe retroalimentación inmediata.
+                  Aprende frases como &quot;tengo fiebre y tos&quot;, &quot;me duele la cabeza&quot; y recibe retroalimentación inmediata.
                 </p>
               </CardContent>
               <CardFooter>
