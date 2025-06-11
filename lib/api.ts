@@ -35,8 +35,9 @@ export interface Label {
   name: string
   description: string
   category?: string
-  difficulty?: "beginner" | "intermediate" | "advanced"
-}
+
+  difficulty?: "beginner" | "intermediate" | "advanced" | "default"
+
 
 export interface PredictionRecord {
   id: string

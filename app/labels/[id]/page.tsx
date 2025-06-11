@@ -11,11 +11,19 @@ import { ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import type { Label } from "@/lib/api"
 
+const DEFAULT_LABEL: Label = {
+  id: "",
+  name: "",
+  description: "",
+  difficulty: "default",
+  category: "",
+}
+
 export default function LabelDetailPage() {
   const params = useParams<{ id?: string }>() || {}
   const router = useRouter()
   const { labels, isLoading } = useLabels()
-  const [label, setLabel] = useState<Label | null>(null)
+  const [label, setLabel] = useState<Label>(DEFAULT_LABEL)
 
   // Asegurarnos de que labels sea un array
   const safeLabels = useMemo(() => (Array.isArray(labels) ? labels : []), [labels])
@@ -23,14 +31,9 @@ export default function LabelDetailPage() {
   useEffect(() => {
     if (safeLabels.length > 0 && params.id) {
       const foundLabel = safeLabels.find((l) => l.id === params.id)
-      if (foundLabel) {
-        setLabel(foundLabel)
-      } else {
-        // Si no se encuentra la etiqueta, redirigir a la página de etiquetas
-        router.push("/labels")
-      }
+      setLabel(foundLabel ?? DEFAULT_LABEL)
     }
-  }, [safeLabels, params.id, router])
+  }, [safeLabels, params.id])
 
   // Función para generar un color de fondo basado en el nombre de la etiqueta
   const getBackgroundColor = (name: string) => {
@@ -84,7 +87,7 @@ export default function LabelDetailPage() {
     )
   }
 
-  if (!label) {
+  if (!isLoading && !label.id) {
     return (
       <div className="container py-8">
         <div className="flex items-center mb-6">
@@ -132,11 +135,13 @@ export default function LabelDetailPage() {
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold mb-2">Descripción</h2>
-            <p className="text-muted-foreground">{label.description}</p>
+            {label.description?.length ? (
+              <p className="text-muted-foreground">{label.description}</p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{label.category}</Badge>
+            <Badge variant="outline">{label.category || "Sin categoría"}</Badge>
             <Badge className={difficultyColor[label.difficulty ?? "default"]}>
               {difficultyText[label.difficulty ?? "default"]}
             </Badge>
