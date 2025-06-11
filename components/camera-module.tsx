@@ -60,10 +60,11 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     error: cameraError,
     preprocessFrame,
   } = useCamera({
-    enabled: true,
+    enabled: isRecording, // ✅ solo graba cuando se está grabando
     onFrame: handleFrame,
     frameRate: 15,
   })
+
 
   // Start recording with countdown
   const startRecording = () => {
@@ -76,32 +77,28 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       return
     }
 
-    setCountdown(3)
     setFrames([])
     framesRef.current = []
+    setIsRecording(true) // ✅ activa cámara desde ya
 
+    setCountdown(3)
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(countdownRef.current!)
-          setIsRecording(true)
           console.log("🎥 Grabación iniciada, esperando capturar frames...")
 
-          // Recording starts: set a timer for 3 seconds to automatically stop and submit.
-          // Frames will be collected up to NUM_FRAMES (35) within this period.
-          if (recordingRef.current) {
-            clearTimeout(recordingRef.current); // Clear any existing timer
-          }
+          if (recordingRef.current) clearTimeout(recordingRef.current)
           recordingRef.current = setTimeout(() => {
-            setIsRecording(false);
-            submitRecording();
-          }, 3000); // 3-second recording duration
+            setIsRecording(false)
+            submitRecording()
+          }, 3000)
           return null
         }
         return prev - 1
       })
     }, 1000)
-  }
+
 
   // Stop recording
   const stopRecording = () => {
