@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useLabels } from "@/hooks/use-labels"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,6 +21,7 @@ const DEFAULT_LABEL: Label = {
 
 export default function LabelDetailPage() {
   const params = useParams<{ id?: string }>() || {}
+  const router = useRouter()
   const { labels, isLoading } = useLabels()
   const [label, setLabel] = useState<Label>(DEFAULT_LABEL)
 
@@ -140,7 +141,7 @@ export default function LabelDetailPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{label.category ?? "Sin categoría"}</Badge>
+            <Badge variant="outline">{label.category || "Sin categoría"}</Badge>
             <Badge className={difficultyColor[label.difficulty ?? "default"]}>
               {difficultyText[label.difficulty ?? "default"]}
             </Badge>
