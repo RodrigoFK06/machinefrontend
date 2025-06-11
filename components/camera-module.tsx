@@ -36,14 +36,20 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
         if (prevFrames.length < NUM_FRAMES) {
           const processedFrame = preprocessFrame(imageData)
           const newFrames = [...prevFrames, processedFrame]
+
+          // ✅ LOG para debug
+          console.log(`📸 Capturando frame ${newFrames.length} de ${NUM_FRAMES}`)
+
           framesRef.current = newFrames
           return newFrames
         }
+
         framesRef.current = prevFrames
         return prevFrames
       })
     }
   }
+
 
   const {
     videoRef,
@@ -111,7 +117,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     if (!selectedLabel) return
 
     const capturedFrames = framesRef.current
-
+    console.log("🧪 Enviando frames:", capturedFrames.length)
     // Validate if the collected frames match the expected 35x42 structure
     if (capturedFrames.length !== NUM_FRAMES || !capturedFrames.every((f) => f.length === NUM_FEATURES)) {
       toast({

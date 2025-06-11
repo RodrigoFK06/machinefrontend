@@ -231,52 +231,39 @@ class ApiService {
 
   // POST /predict - Envía predicción y recibe evaluación
   async predict(data: PredictionRequest): Promise<PredictionResponse> {
-    // Generar respuesta dummy para fallback
-    const randomValue = Math.random()
-    let evaluation: "correct" | "doubtful" | "incorrect"
-    let confidence: number
-    let predictedLabel: string
+    try {
+      console.log("👉 Real POST to backend:", data)
 
-    if (randomValue > 0.6) {
-      evaluation = "correct"
-      predictedLabel = data.expected_label
-      confidence = 0.75 + Math.random() * 0.25
-    } else if (randomValue > 0.3) {
-      evaluation = "doubtful"
-      predictedLabel = data.expected_label
-      confidence = 0.5 + Math.random() * 0.25
-    } else {
-      evaluation = "incorrect"
-      const possibleLabels = DUMMY_LABELS.filter((name) => name !== data.expected_label)
-      predictedLabel = possibleLabels[Math.floor(Math.random() * possibleLabels.length)]
-      confidence = 0.3 + Math.random() * 0.2
-    }
-
-    const observations = {
-      correct: "Excelente ejecución de la seña. Movimientos claros y precisos.",
-      doubtful: "La seña es reconocible pero puede mejorar en velocidad y precisión.",
-      incorrect: "La seña no fue reconocida correctamente. Intenta seguir el patrón de movimiento con más precisión.",
-    }
-
-    const fallbackResponse: PredictionResponse = {
-      predicted_label: predictedLabel,
-      confidence: confidence,
-      evaluation: evaluation,
-      observation: observations[evaluation],
-      success_rate: 40 + Math.random() * 60,
-      average_confidence: 0.6 + Math.random() * 0.3,
-    }
-
-    return this.fetchWithFallback(
-      "/predict",
-      {
+      const response = await fetch("https://machinelear.onrender.com/predict", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
-      },
-      fallbackResponse,
-      "Prediction request",
-    )
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`)
+      }
+
+      const result: PredictionResponse = await response.json()
+      console.log("✅ Prediction response:", result)
+      return result
+    } catch (error) {
+      console.error("❌ Error calling backend:", error)
+
+      // Fallback dummy response if backend is unreachable
+      return {
+        predicted_label: data.expected_label,
+        confidence: 0.5,
+        evaluation: "doubtful",
+        observation: "Respuesta generada por fallback local.",
+        success_rate: 50,
+        average_confidence: 0.5,
+      }
+    }
   }
+
 
   // GET /labels - Obtiene lista de señas disponibles
   async getLabels(): Promise<Label[]> {
