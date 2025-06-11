@@ -60,7 +60,10 @@ export const useStore = create<AppState>()(
         // localStorage entry or a previous bug), they are initialized as empty arrays
         // in the store, preventing 'undefined.length' errors in components.
         merge: (persistedState, currentState) => {
-          const merged = { ...currentState, ...persistedState };
+          const merged = {
+            ...currentState,
+            ...(persistedState as Partial<AppState>),
+          } as AppState;
           if (!Array.isArray(merged.labels)) {
             merged.labels = [];
           }

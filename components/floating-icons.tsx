@@ -38,7 +38,7 @@ export function FloatingIcons({
 }: FloatingIconsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [floatingIcons, setFloatingIcons] = useState<FloatingIcon[]>([])
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!containerRef.current || icons.length === 0) return
