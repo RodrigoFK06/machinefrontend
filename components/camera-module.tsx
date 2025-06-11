@@ -31,16 +31,17 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
 
   // Handle frame processing
   const handleFrame = (imageData: ImageData) => {
+    console.log("📸 Frame recibido", imageData)
+
     if (isRecording) {
       setFrames((prevFrames) => {
         if (prevFrames.length < NUM_FRAMES) {
           const processedFrame = preprocessFrame(imageData)
+          console.log("🧪 Frame procesado:", processedFrame)
+
           const newFrames = [...prevFrames, processedFrame]
-
-          // ✅ LOG para debug
-          console.log(`📸 Capturando frame ${newFrames.length} de ${NUM_FRAMES}`)
-
           framesRef.current = newFrames
+          console.log(`📸 Capturando frame ${newFrames.length} de ${NUM_FRAMES}`)
           return newFrames
         }
 
@@ -49,6 +50,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       })
     }
   }
+
 
 
   const {
@@ -83,6 +85,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
         if (prev === null || prev <= 1) {
           clearInterval(countdownRef.current!)
           setIsRecording(true)
+          console.log("🎥 Grabación iniciada, esperando capturar frames...")
 
           // Recording starts: set a timer for 3 seconds to automatically stop and submit.
           // Frames will be collected up to NUM_FRAMES (35) within this period.
@@ -115,6 +118,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   // Submit recording for prediction
   const submitRecording = useCallback(async () => {
     if (!selectedLabel) return
+    console.log("🧪 Enviando frames:", framesRef.current.length)
 
     const capturedFrames = framesRef.current
     console.log("🧪 Enviando frames:", capturedFrames.length)
@@ -162,6 +166,10 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       if (recordingRef.current) clearTimeout(recordingRef.current) // recordingRef might be null now but good practice
     }
   }, [])
+
+  if (cameraError) {
+    console.warn("🚨 Error de cámara:", cameraError)
+  }
 
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-4">
