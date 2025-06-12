@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import { Children } from "react"
 
 import { cn } from "@/lib/utils"
 import { useEffect, useRef, useState, useCallback } from "react"
@@ -16,7 +16,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
   const [activeIndex, setActiveIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const childArray = React.Children.toArray(children)
+  const childArray = Children.toArray(children)
 
   const nextCard = useCallback(() => {
     if (isAnimating) return
