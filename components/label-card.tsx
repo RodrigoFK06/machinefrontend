@@ -3,6 +3,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Label } from "@/lib/api"
+import { generateColorFromName } from "@/lib/utils"
 import { BookOpen, BarChart3 } from "lucide-react"
 import Link from "next/link"
 
@@ -13,20 +14,6 @@ interface LabelCardProps {
 }
 
 export function LabelCard({ label, onSelect, isSelected = false }: LabelCardProps) {
-  // Función para generar un color de fondo basado en el nombre de la etiqueta
-  // para simular diferentes imágenes de ejemplo
-  const getBackgroundColor = (name: string) => {
-    // Convertir el nombre a un número hash simple
-    let hash = 0
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash)
-    }
-
-    // Generar un color HSL con tonalidad basada en el hash
-    // pero con saturación y luminosidad fijas para mantener colores agradables
-    const hue = hash % 360
-    return `hsl(${hue}, 70%, 85%)`
-  }
 
   return (
     <Card className={`transition-all ${isSelected ? "ring-2 ring-primary" : ""}`}>
@@ -41,7 +28,7 @@ export function LabelCard({ label, onSelect, isSelected = false }: LabelCardProp
         {/* Category Badge Removed */}
         <div
           className="w-full aspect-video rounded-md flex items-center justify-center mt-2 overflow-hidden"
-          style={{ backgroundColor: getBackgroundColor(label.name) }}
+          style={{ backgroundColor: generateColorFromName(label?.name) }}
         >
           <div className="text-center p-4">
             <p className="font-medium text-gray-700">Ejemplo: {label.name}</p>

@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import type { Label } from "@/lib/api"
-import { safeLength } from "@/lib/utils"
+import { safeLength, generateColorFromName } from "@/lib/utils"
 
 const DEFAULT_LABEL: Label = {
   id: "",
@@ -36,18 +36,6 @@ export default function LabelDetailPage() {
     }
   }, [safeLabels, params.id])
 
-  // Función para generar un color de fondo basado en el nombre de la etiqueta
-  const getBackgroundColor = (name: string) => {
-    if (!name) return "hsl(210, 70%, 85%)"
-
-    let hash = 0
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash)
-    }
-
-    const hue = hash % 360
-    return `hsl(${hue}, 70%, 85%)`
-  }
 
   const difficultyText = {
     beginner: "Principiante",
@@ -123,7 +111,7 @@ export default function LabelDetailPage() {
           <CardContent className="p-0">
             <div
               className="w-full aspect-video flex items-center justify-center"
-              style={{ backgroundColor: getBackgroundColor(label.name) }}
+              style={{ backgroundColor: generateColorFromName(label?.name) }}
             >
               <div className="text-center p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{label.name}</h2>
