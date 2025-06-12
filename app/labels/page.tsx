@@ -7,6 +7,7 @@ import type { Label } from "@/lib/api"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
+import { safeLength } from "@/lib/utils"
 
 export default function LabelsPage() {
   const { labels, isLoading } = useLabels()
@@ -52,7 +53,7 @@ export default function LabelsPage() {
             <Skeleton key={i} className="w-full h-[250px]" />
           ))}
         </div>
-      ) : filteredLabels.length === 0 ? (
+      ) : safeLength(filteredLabels) === 0 ? (
         <div className="text-center py-8 border rounded-lg">
           <p className="text-muted-foreground">No se encontraron señas</p>
         </div>

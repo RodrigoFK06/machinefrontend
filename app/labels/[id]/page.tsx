@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Play } from "lucide-react"
 import Link from "next/link"
 import type { Label } from "@/lib/api"
+import { safeLength } from "@/lib/utils"
 
 const DEFAULT_LABEL: Label = {
   id: "",
@@ -29,7 +30,7 @@ export default function LabelDetailPage() {
   const safeLabels = useMemo(() => (Array.isArray(labels) ? labels : []), [labels])
 
   useEffect(() => {
-    if (safeLabels.length > 0 && params.id) {
+    if (safeLength(safeLabels) > 0 && params.id) {
       const foundLabel = safeLabels.find((l) => l.id === params.id)
       setLabel(foundLabel ?? DEFAULT_LABEL)
     }

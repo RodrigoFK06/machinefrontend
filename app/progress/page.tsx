@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { safeLength } from "@/lib/utils"
 
 export default function ProgressPage() {
   const { allRecords } = useRecords()
@@ -19,10 +20,10 @@ export default function ProgressPage() {
   const safeLabels = Array.isArray(labels) ? labels : []
 
   // Calculate statistics from records (fallback si no hay progressData de la API)
-  const totalAttempts = safeRecords.length
-  const correctCount = safeRecords.filter((r) => r.evaluation === "correct").length
-  const doubtfulCount = safeRecords.filter((r) => r.evaluation === "doubtful").length
-  const incorrectCount = safeRecords.filter((r) => r.evaluation === "incorrect").length
+  const totalAttempts = safeLength(safeRecords)
+  const correctCount = safeLength(safeRecords.filter((r) => r.evaluation === "correct"))
+  const doubtfulCount = safeLength(safeRecords.filter((r) => r.evaluation === "doubtful"))
+  const incorrectCount = safeLength(safeRecords.filter((r) => r.evaluation === "incorrect"))
 
   const correctPercentage = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0
   const doubtfulPercentage = totalAttempts > 0 ? Math.round((doubtfulCount / totalAttempts) * 100) : 0
@@ -46,7 +47,7 @@ export default function ProgressPage() {
   // Calculate statistics by label usando progressData de la API si está disponible
   let labelStats: any[] = []
 
-  if (progressData.length > 0) {
+  if (safeLength(progressData) > 0) {
     // Usar datos de la API
     labelStats = progressData.map((progress) => ({
       id: progress.label_name,
@@ -61,8 +62,8 @@ export default function ProgressPage() {
     labelStats = safeLabels
       .map((label) => {
         const labelRecords = safeRecords.filter((r) => r.expected_label === label.name)
-        const total = labelRecords.length
-        const correct = labelRecords.filter((r) => r.evaluation === "correct").length
+        const total = safeLength(labelRecords)
+        const correct = safeLength(labelRecords.filter((r) => r.evaluation === "correct"))
         const percentage = total > 0 ? Math.round((correct / total) * 100) : 0
 
         return {
@@ -71,7 +72,7 @@ export default function ProgressPage() {
           total,
           correct,
           percentage,
-          category: label.category,
+          category: label.category || "Sin categoría",
         }
       })
       .filter((stat) => stat.total > 0)
@@ -81,7 +82,7 @@ export default function ProgressPage() {
   const sortedLabelStats = [...labelStats].sort((a, b) => b.total - a.total)
 
   // Calcular número de señas practicadas
-  const practicesSignsCount = labelStats.length
+  const practicesSignsCount = safeLength(labelStats)
 
   return (
     <div className="min-h-screen bg-background">
@@ -185,7 +186,7 @@ export default function ProgressPage() {
           <CardHeader>
             <CardTitle>Progreso por seña</CardTitle>
             <CardDescription>
-              {progressData.length > 0
+              {safeLength(progressData) > 0
                 ? "Estadísticas detalladas desde la API por cada seña practicada"
                 : "Estadísticas calculadas localmente por cada seña practicada"}
             </CardDescription>
@@ -197,7 +198,7 @@ export default function ProgressPage() {
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
-            ) : sortedLabelStats.length > 0 ? (
+            ) : safeLength(sortedLabelStats) > 0 ? (
               <Tabs defaultValue="most-practiced">
                 <TabsList className="mb-4">
                   <TabsTrigger value="most-practiced">Más practicadas</TabsTrigger>
