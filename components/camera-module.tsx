@@ -22,6 +22,7 @@ const NUM_FEATURES = 42
 export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModuleProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false) // ✅ Nuevo estado para controlar la cámara
   const [isRecording, setIsRecording] = useState(false)
+  const [isReadyForPrediction, setIsReadyForPrediction] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [frames, setFrames] = useState<number[][]>([])
   const framesRef = useRef<number[][]>([])
@@ -34,7 +35,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   const handleFrame = (imageData: ImageData) => {
     console.log("📸 Frame recibido", imageData)
 
-    if (isRecording) {
+    if (isRecording && isReadyForPrediction) {
       setFrames((prevFrames) => {
         if (prevFrames.length < NUM_FRAMES) {
           const processedFrame = preprocessFrame(imageData)
@@ -77,6 +78,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
 
     setFrames([])
     framesRef.current = []
+    setIsReadyForPrediction(false)
     setCameraEnabled(true) // ✅ Activa cámara de inmediato
     setCountdown(3)
 
@@ -85,6 +87,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
         if (prev === null || prev <= 1) {
           clearInterval(countdownRef.current!)
           setCountdown(null)
+          setIsReadyForPrediction(true)
           setIsRecording(true) // ✅ Ahora sí comienza la grabación real
 
           console.log("🎥 Grabación iniciada, esperando capturar frames...")
@@ -105,6 +108,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   // Stop recording
   const stopRecording = () => {
     setIsRecording(false)
+    setIsReadyForPrediction(false)
     setCameraEnabled(false) // ✅ También apaga la cámara
     if (countdownRef.current) {
       clearInterval(countdownRef.current)
@@ -118,12 +122,10 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
   // Submit recording for prediction
   const submitRecording = useCallback(async () => {
     if (!selectedLabel) return
-    console.log("🧪 Enviando frames:", framesRef.current.length)
-
     const capturedFrames = framesRef.current
     console.log("🧪 Enviando frames:", capturedFrames.length)
-    // Validate if the collected frames match the expected 35x42 structure
-    if (capturedFrames.length !== NUM_FRAMES || !capturedFrames.every((f) => f.length === NUM_FEATURES)) {
+
+    if (capturedFrames.length < NUM_FRAMES || !capturedFrames.every((f) => f.length === NUM_FEATURES)) {
       toast({
         title: "Captura incompleta",
         description: "No se capturaron suficientes frames para la predicción.",
@@ -139,7 +141,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
     framesRef.current = []
 
     try {
-      console.log("Enviando predicción...")
+      console.log("📡 Enviando frames al endpoint /predict")
       const result = await predict({
         sequence: sequenceToSubmit,
         expected_label: selectedLabel.name,
@@ -156,6 +158,7 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
         variant: "destructive",
       })
       setIsRecording(false) // Safeguard
+      setIsReadyForPrediction(false)
     }
   }, [selectedLabel, predict, onPredictionComplete, toast]) // NUM_FRAMES & NUM_FEATURES are constants
 
