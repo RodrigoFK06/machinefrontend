@@ -16,17 +16,18 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
   const [activeIndex, setActiveIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const childArray = React.Children.toArray(children)
 
   const nextCard = useCallback(() => {
     if (isAnimating) return
 
     setIsAnimating(true)
-    setActiveIndex((prev) => (prev + 1) % children.length)
+    setActiveIndex((prev) => (prev + 1) % childArray.length)
 
     setTimeout(() => {
       setIsAnimating(false)
     }, 600) // Match this with the CSS transition duration
-  }, [isAnimating, children.length])
+  }, [isAnimating, childArray.length])
 
   useEffect(() => {
     timerRef.current = setInterval(nextCard, interval)
@@ -41,7 +42,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
   const getCardClassName = (index: number) => {
     if (index === activeIndex) {
       return "opacity-100 scale-100 z-20"
-    } else if (index === activeIndex + 1 || (activeIndex === children.length - 1 && index === 0)) {
+    } else if (index === activeIndex + 1 || (activeIndex === childArray.length - 1 && index === 0)) {
       return direction === "horizontal"
         ? "opacity-70 scale-95 translate-x-[40%] z-10"
         : "opacity-70 scale-95 translate-y-[40%] z-10"
@@ -54,7 +55,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
 
   return (
     <div className={cn("relative w-full h-full", className)}>
-      {children.map((child, index) => (
+      {childArray.map((child, index) => (
         <div
           key={index}
           className={cn("absolute inset-0 transition-all duration-600 ease-in-out", getCardClassName(index))}
@@ -65,7 +66,7 @@ export function AnimatedCards({ className, children, interval = 3000, direction 
       ))}
 
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {children.map((_, index) => (
+        {childArray.map((_, index) => (
           <button
             key={index}
             className={cn("w-2 h-2 rounded-full transition-all", index === activeIndex ? "bg-primary w-4" : "bg-muted")}

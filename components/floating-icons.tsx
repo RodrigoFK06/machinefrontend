@@ -41,7 +41,7 @@ export function FloatingIcons({
   const animationRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current || icons.length === 0) return
+    if (!containerRef.current || !Array.isArray(icons) || icons.length === 0) return
 
     const { width, height } = containerRef.current.getBoundingClientRect()
 

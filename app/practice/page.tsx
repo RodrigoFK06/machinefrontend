@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 // Badge and Tabs are no longer used directly here for categories/difficulty
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
+import { safeLength } from "@/lib/utils"
 
 export default function PracticePage() {
   const searchParams = useSearchParams()
@@ -44,7 +45,7 @@ export default function PracticePage() {
   // Set selected label from URL param
   useEffect(() => {
     const safeLabels = Array.isArray(labels) ? labels : []
-    if (labelId && safeLabels.length > 0) {
+    if (labelId && safeLength(safeLabels) > 0) {
       const label = safeLabels.find((l) => l.id === labelId)
       if (label) {
         setSelectedLabel(label)
@@ -77,7 +78,7 @@ export default function PracticePage() {
     const safeLabels = Array.isArray(labels) ? labels : []
     const currentIndex = safeLabels.findIndex((l) => l.id === selectedLabel.id)
 
-    if (currentIndex !== -1 && currentIndex < safeLabels.length - 1) {
+    if (currentIndex !== -1 && currentIndex < safeLength(safeLabels) - 1) {
       const nextLabel = safeLabels[currentIndex + 1]
       setSelectedLabel(nextLabel)
       setPredictionResult(null)
@@ -119,7 +120,7 @@ export default function PracticePage() {
                     <Skeleton key={i} className="w-full h-[200px]" />
                   ))}
                 </div>
-              ) : filteredLabels.length === 0 ? (
+              ) : safeLength(filteredLabels) === 0 ? (
                 <div className="text-center py-8 border rounded-lg">
                   <p className="text-muted-foreground">No se encontraron señas</p>
                 </div>
