@@ -62,7 +62,11 @@ const TableRow = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {React.Children.map(props.children, (child) =>
+      child && typeof child === "string" ? child.trim() : child
+    )}
+  </tr>
 ))
 TableRow.displayName = "TableRow"
 

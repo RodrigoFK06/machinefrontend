@@ -186,8 +186,8 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedRecords.map((record) => (
-            <TableRow key={record.id}>
+          {sortedRecords.map((record, index) => (
+            <TableRow key={record.id || index}> {/* Usar índice como respaldo si `id` está ausente */}
               <TableCell className="font-medium">{formatDate(record.timestamp)}</TableCell>
               <TableCell>{record.expected_label}</TableCell>
               <TableCell>{record.predicted_label}</TableCell>

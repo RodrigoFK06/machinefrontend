@@ -52,15 +52,18 @@ export interface PredictionRecord {
 }
 
 export interface ProgressData {
-  label_name: string
-  total_attempts: number
-  correct_attempts: number
-  doubtful_attempts: number
-  incorrect_attempts: number
-  average_confidence: number
-  max_confidence: number
-  last_practice: string
-  success_rate: number
+  label: string; // Changed from label_name to label
+  total_attempts: number;
+  correct_attempts: number;
+  doubtful_attempts: number;
+  incorrect_attempts: number;
+  average_confidence: number;
+  max_confidence: number;
+  min_confidence: number; // Added field
+  last_attempt: string; // Added field
+  success_rate: number;
+  doubtful_rate: number; // Added field
+  incorrect_rate: number; // Added field
 }
 
 export interface DailyActivity {
@@ -230,15 +233,18 @@ const generateDummyProgress = (): ProgressData[] => {
     const incorrectAttempts = totalAttempts - correctAttempts - doubtfulAttempts
 
     return {
-      label_name: label.name,
+      label: label.name, // Changed from label_name to label
       total_attempts: totalAttempts,
       correct_attempts: correctAttempts,
       doubtful_attempts: doubtfulAttempts,
       incorrect_attempts: incorrectAttempts,
       average_confidence: 0.5 + Math.random() * 0.4,
       max_confidence: 0.7 + Math.random() * 0.3,
-      last_practice: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      min_confidence: Math.random() * 0.3, // Valor mínimo aleatorio
+      last_attempt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       success_rate: (correctAttempts / totalAttempts) * 100,
+      doubtful_rate: (doubtfulAttempts / totalAttempts) * 100, // Tasa de intentos dudosos
+      incorrect_rate: (incorrectAttempts / totalAttempts) * 100, // Tasa de intentos incorrectos
     }
   }).filter((p) => p.total_attempts > 0)
 }
@@ -346,8 +352,8 @@ class ApiService {
 
 
   // GET /labels - Obtiene lista de señas disponibles
-  async getLabels(): Promise<Label[]> {
-    return this.fetchWithFallback("/labels", { method: "GET" }, DUMMY_LABELS, "Get labels")
+  async getLabels(): Promise<string[]> {
+    return this.fetchWithFallback<string[]>("/labels", { method: "GET" }, ["hola_buenos_dias", "me_duele_la_cabeza", "ninguna", "tengo_fiebre_y_tos"], "Get labels")
   }
 
   // GET /records?nickname=xxx - Obtiene historial de prácticas

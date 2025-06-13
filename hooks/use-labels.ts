@@ -23,12 +23,16 @@ export function useLabels() {
       console.log("🔄 Fetching labels from API...")
 
       // Llamada real a la API con fallback automático
-      const fetchedLabels = await apiService.getLabels()
+      const fetchedLabels = (await apiService.getLabels()) as string[] // Forzar el tipo a string[]
 
       console.log("✅ Labels fetched successfully:", fetchedLabels.length)
 
       // Asegurar que tenemos un array válido
-      const safeLabels = Array.isArray(fetchedLabels) ? fetchedLabels : []
+      const safeLabels = fetchedLabels.map((label) => ({
+        id: label,
+        name: label.replace(/_/g, " "), // Reemplazar guiones bajos por espacios para mostrar nombres legibles
+        description: "", // Proveer un valor vacío para evitar errores
+      }))
 
       setLabels(safeLabels)
       setError(null)

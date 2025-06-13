@@ -128,7 +128,7 @@ export default function PracticePage() {
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                   {filteredLabels.map((label) => (
                     <LabelCard
-                      key={label.id}
+                      key={label.id} // Usar `label.id` como clave única
                       label={label}
                       onSelect={() => handleLabelSelect(label)}
                       isSelected={selectedLabel?.id === label.id}

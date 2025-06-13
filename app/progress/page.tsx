@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useRecords } from "@/hooks/use-records"
 import { useLabels } from "@/hooks/use-labels"
 import { useProgress } from "@/hooks/use-progress"
@@ -47,15 +48,22 @@ export default function ProgressPage() {
   // Calculate statistics by label usando progressData de la API si está disponible
   let labelStats: any[] = []
 
-  if (safeLength(progressData) > 0) {
-    // Usar datos de la API
+  if (safeLength(progressData) > 0) {    // Usar datos de la API
     labelStats = progressData.map((progress) => ({
-      id: progress.label_name,
-      name: progress.label_name,
+      id: progress.label, // Use `label` as the unique key
+      name: progress.label,
       total: progress.total_attempts,
       correct: progress.correct_attempts,
-      percentage: Math.round(progress.success_rate),
-      category: safeLabels.find((l) => l.name === progress.label_name)?.category || "Desconocido",
+      doubtful: progress.doubtful_attempts,
+      incorrect: progress.incorrect_attempts,
+      successRate: progress.success_rate,
+      doubtfulRate: progress.doubtful_rate,
+      incorrectRate: progress.incorrect_rate,
+      averageConfidence: progress.average_confidence,
+      maxConfidence: progress.max_confidence,
+      minConfidence: progress.min_confidence,
+      lastAttempt: progress.last_attempt,
+      category: safeLabels.find((l) => l.name === progress.label)?.category || "Desconocido",
     }))
   } else {
     // Fallback a cálculos locales
@@ -72,6 +80,7 @@ export default function ProgressPage() {
           total,
           correct,
           percentage,
+          successRate: percentage, // Add successRate for consistency
           category: label.category || "Sin categoría",
         }
       })
@@ -206,8 +215,7 @@ export default function ProgressPage() {
                 </TabsList>
 
                 <TabsContent value="most-practiced">
-                  <div className="space-y-4">
-                    {sortedLabelStats.slice(0, 5).map((stat) => (
+                  <div className="space-y-4">                    {sortedLabelStats.slice(0, 5).map((stat) => (
                       <div key={stat.id} className="flex items-center">
                         <div className="w-1/3">
                           <p className="font-medium">{stat.name}</p>
@@ -223,10 +231,10 @@ export default function ProgressPage() {
                             <div className="w-full bg-muted rounded-full h-2.5">
                               <div
                                 className="bg-green-500 h-2.5 rounded-full"
-                                style={{ width: `${stat.percentage}%` }}
+                                style={{ width: `${stat.successRate}%` }}
                               ></div>
                             </div>
-                            <span className="text-sm font-medium">{stat.percentage}%</span>
+                            <span className="text-sm font-medium">{stat.successRate}%</span>
                           </div>
                         </div>
                       </div>
@@ -238,9 +246,8 @@ export default function ProgressPage() {
                   <div className="space-y-4">
                     {[...labelStats]
                       .filter((stat) => stat.total >= 3) // At least 3 attempts
-                      .sort((a, b) => b.percentage - a.percentage)
-                      .slice(0, 5)
-                      .map((stat) => (
+                      .sort((a, b) => b.successRate - a.successRate)
+                      .slice(0, 5)                      .map((stat) => (
                         <div key={stat.id} className="flex items-center">
                           <div className="w-1/3">
                             <p className="font-medium">{stat.name}</p>
@@ -256,10 +263,10 @@ export default function ProgressPage() {
                               <div className="w-full bg-muted rounded-full h-2.5">
                                 <div
                                   className="bg-green-500 h-2.5 rounded-full"
-                                  style={{ width: `${stat.percentage}%` }}
+                                  style={{ width: `${stat.successRate}%` }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-medium">{stat.percentage}%</span>
+                              <span className="text-sm font-medium">{stat.successRate}%</span>
                             </div>
                           </div>
                         </div>
