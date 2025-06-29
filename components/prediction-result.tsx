@@ -59,7 +59,7 @@ export function PredictionResult({ result, expectedLabel, onClose, onRepeat, onN
   }
 
   const details = getEvaluationDetails()
-  const confidencePercent = Math.round(result.confidence * 100)
+  const confidencePercent = Math.round(result.confidence )
 
   return (
     <AnimatePresence>
@@ -120,7 +120,7 @@ export function PredictionResult({ result, expectedLabel, onClose, onRepeat, onN
                 {result.average_confidence !== undefined && (
                   <div className="text-center p-3 bg-muted rounded-md">
                     <p className="text-sm text-muted-foreground">Confianza media</p>
-                    <p className="text-xl font-bold">{Math.round(result.average_confidence * 100)}%</p>
+                    <p className="text-xl font-bold">{Math.round(result.average_confidence )}%</p>
                   </div>
                 )}
               </div>

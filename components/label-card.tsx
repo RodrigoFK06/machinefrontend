@@ -1,5 +1,5 @@
 "use client"
-
+import { labelFriendlyNames } from "@/lib/label-names"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { Label } from "@/lib/api"
@@ -14,12 +14,12 @@ interface LabelCardProps {
 }
 
 export function LabelCard({ label, onSelect, isSelected = false }: LabelCardProps) {
-
+const friendlyName = labelFriendlyNames[label.id] || label.name.replace(/_/g, " ")
   return (
     <Card className={`transition-all ${isSelected ? "ring-2 ring-primary" : ""}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{label.name}</CardTitle>
+          <CardTitle className="text-lg">{friendlyName}</CardTitle>
           {/* Difficulty Badge Removed */}
         </div>
         {/* CardDescription Removed */}
@@ -31,7 +31,7 @@ export function LabelCard({ label, onSelect, isSelected = false }: LabelCardProp
           style={{ backgroundColor: generateColorFromName(label?.name) }}
         >
           <div className="text-center p-4">
-            <p className="font-medium text-gray-700">Ejemplo: {label.name}</p>
+            <p className="font-medium text-gray-700">Ejemplo: {friendlyName}</p>
             <p className="text-sm text-gray-600 mt-1">Imagen ilustrativa</p>
           </div>
         </div>

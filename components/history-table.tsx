@@ -191,7 +191,7 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
               <TableCell className="font-medium">{formatDate(record.timestamp)}</TableCell>
               <TableCell>{record.expected_label}</TableCell>
               <TableCell>{record.predicted_label}</TableCell>
-              <TableCell className="text-right">{Math.round(record.confidence * 100)}%</TableCell>
+              <TableCell className="text-right">{Math.round(record.confidence )}%</TableCell>
               <TableCell>{getEvaluationBadge(record.evaluation)}</TableCell>
               <TableCell>
                 <DropdownMenu>

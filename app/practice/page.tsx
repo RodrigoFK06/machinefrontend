@@ -8,47 +8,47 @@ import { LabelCard } from "@/components/label-card"
 import { useLabels } from "@/hooks/use-labels"
 import type { Label, PredictionResponse } from "@/lib/api"
 import { Input } from "@/components/ui/input"
-// Badge and Tabs are no longer used directly here for categories/difficulty
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
-import { safeLength } from "@/lib/utils"
+import { safeLength, cn } from "@/lib/utils"
+import { labelFriendlyNames } from "@/lib/label-names"
+
+const LEVELS = ["principiante", "intermedio", "avanzado"]
 
 export default function PracticePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const labelId = searchParams?.get("label") ?? null
   const { labels, isLoading } = useLabels()
+
+  const [activeLevel, setActiveLevel] = useState("principiante")
   const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredLabels, setFilteredLabels] = useState<Label[]>([])
-  // activeCategory and categories removed
   const [predictionResult, setPredictionResult] = useState<PredictionResponse | null>(null)
 
-  // Asegurarnos de que labels sea un array
   const safeLabels = Array.isArray(labels) ? labels : []
 
-  // Filter labels based on search
+  // 🔎 Filtro por nivel y texto
   useEffect(() => {
-    const safeLabels = Array.isArray(labels) ? labels : []
-    let filtered = [...safeLabels]
-
+    let filtered = safeLabels.filter(
+      (label) => label.difficulty?.toLowerCase() === activeLevel
+    )
     if (searchTerm) {
       filtered = filtered.filter((label) =>
-        label.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        label.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
-
-    // Category filtering removed
     setFilteredLabels(filtered)
-  }, [labels, searchTerm]) // activeCategory removed from dependencies
+  }, [labels, searchTerm, activeLevel])
 
-  // Set selected label from URL param
+  // 🔁 Seleccionar automáticamente desde la URL (si existe)
   useEffect(() => {
-    const safeLabels = Array.isArray(labels) ? labels : []
     if (labelId && safeLength(safeLabels) > 0) {
       const label = safeLabels.find((l) => l.id === labelId)
       if (label) {
         setSelectedLabel(label)
+        setActiveLevel(label.difficulty?.toLowerCase() || "principiante")
       }
     }
   }, [labelId, labels])
@@ -69,29 +69,29 @@ export default function PracticePage() {
 
   const handleRepeat = () => {
     setPredictionResult(null)
-    // Optionally, you could trigger the camera to start recording again
   }
 
   const handleNextLesson = () => {
     if (!selectedLabel) return
-
-    const safeLabels = Array.isArray(labels) ? labels : []
-    const currentIndex = safeLabels.findIndex((l) => l.id === selectedLabel.id)
-
-    if (currentIndex !== -1 && currentIndex < safeLength(safeLabels) - 1) {
-      const nextLabel = safeLabels[currentIndex + 1]
+    const currentIndex = filteredLabels.findIndex((l) => l.id === selectedLabel.id)
+    if (currentIndex !== -1 && currentIndex < safeLength(filteredLabels) - 1) {
+      const nextLabel = filteredLabels[currentIndex + 1]
       setSelectedLabel(nextLabel)
       setPredictionResult(null)
       router.push(`/practice?label=${nextLabel.id}`)
     } else {
-      // If it's the last lesson, go to the first one or show completion message
-      const firstLabel = safeLabels[0]
+      const firstLabel = filteredLabels[0]
       if (firstLabel) {
         setSelectedLabel(firstLabel)
         setPredictionResult(null)
         router.push(`/practice?label=${firstLabel.id}`)
       }
     }
+  }
+
+  const getFriendlyName = (label: Label | null) => {
+    if (!label) return ""
+    return labelFriendlyNames[label.id] || label.name.replace(/_/g, " ")
   }
 
   return (
@@ -102,6 +102,26 @@ export default function PracticePage() {
           <div className="xl:col-span-1 space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-4">Selecciona una seña</h2>
+
+              {/* Tabs de nivel */}
+              <div className="flex gap-2 mb-4">
+                {LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setActiveLevel(level)}
+                    className={cn(
+                      "px-4 py-2 text-sm rounded-full border",
+                      activeLevel === level
+                        ? "bg-primary text-white"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input búsqueda */}
               <div className="relative mb-4">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -113,7 +133,7 @@ export default function PracticePage() {
                 />
               </div>
 
-              {/* Tabs for category filtering removed */}
+              {/* Listado de señas */}
               {isLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -128,8 +148,11 @@ export default function PracticePage() {
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                   {filteredLabels.map((label) => (
                     <LabelCard
-                      key={label.id} // Usar `label.id` como clave única
-                      label={label}
+                      key={label.id}
+                      label={{
+                        ...label,
+                        name: getFriendlyName(label),
+                      }}
                       onSelect={() => handleLabelSelect(label)}
                       isSelected={selectedLabel?.id === label.id}
                     />
@@ -147,27 +170,33 @@ export default function PracticePage() {
               {selectedLabel ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <h3 className="text-xl font-medium">{selectedLabel.name}</h3>
-                    {/* Badges for category and difficulty removed */}
+                    <h3 className="text-xl font-medium">
+                      {getFriendlyName(selectedLabel)}
+                    </h3>
                   </div>
 
                   {predictionResult ? (
                     <div className="flex justify-center">
                       <PredictionResult
                         result={predictionResult}
-                        expectedLabel={selectedLabel.name}
+                        expectedLabel={getFriendlyName(selectedLabel)}
                         onClose={handleClosePrediction}
                         onRepeat={handleRepeat}
                         onNextLesson={handleNextLesson}
                       />
                     </div>
                   ) : (
-                    <CameraModule selectedLabel={selectedLabel} onPredictionComplete={handlePredictionComplete} />
+                    <CameraModule
+                      selectedLabel={selectedLabel}
+                      onPredictionComplete={handlePredictionComplete}
+                    />
                   )}
                 </div>
               ) : (
                 <div className="text-center py-16 border-2 border-dashed border-muted rounded-lg">
-                  <p className="text-muted-foreground text-lg">Selecciona una seña para comenzar a practicar</p>
+                  <p className="text-muted-foreground text-lg">
+                    Selecciona una seña para comenzar a practicar
+                  </p>
                   <p className="text-sm text-muted-foreground mt-2">
                     Elige una seña del panel izquierdo para empezar tu práctica
                   </p>

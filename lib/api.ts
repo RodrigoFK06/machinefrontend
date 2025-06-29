@@ -13,7 +13,7 @@
 // API Service - Centraliza todas las llamadas a la API con fallback a datos dummy
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://machinelear.onrender.com"; // Calls are now proxied through Next.js API routes
-
+console.log("🧪 Usando API_BASE_URL:", API_BASE_URL);
 // Tipos para las respuestas de la API
 export interface PredictionRequest {
   sequence: number[][] // Expected as a 35x42 matrix (35 frames, 42 features/frame)
@@ -329,8 +329,11 @@ class ApiService {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status} - ${response.statusText}`)
-      }
+  const errorText = await response.text()
+  console.warn(`❌ Backend responded with status ${response.status}:`, errorText)
+  throw new Error(`HTTP ${response.status}: ${errorText}`)
+}
+
 
       const result: PredictionResponse = await response.json()
       console.log("✅ Prediction response:", result)
@@ -341,20 +344,29 @@ class ApiService {
       // Fallback dummy response if backend is unreachable
       return {
         predicted_label: data.expected_label,
-        confidence: 0.5,
+        confidence: 0.2,
         evaluation: "doubtful",
         observation: "Respuesta generada por fallback local.",
         success_rate: 50,
-        average_confidence: 0.5,
+        average_confidence: 0.2,
       }
     }
   }
 
 
   // GET /labels - Obtiene lista de señas disponibles
-  async getLabels(): Promise<string[]> {
-    return this.fetchWithFallback<string[]>("/labels", { method: "GET" }, ["hola_buenos_dias", "me_duele_la_cabeza", "ninguna", "tengo_fiebre_y_tos"], "Get labels")
-  }
+ async getLabels(): Promise<{ label: string; level: string }[]> {
+  return this.fetchWithFallback(
+    "/labels",
+    { method: "GET" },
+    [
+      { label: "dolor", level: "principiante" },
+      { label: "ayuda", level: "intermedio" }
+    ],
+    "Get labels"
+  )
+}
+
 
   // GET /records?nickname=xxx - Obtiene historial de prácticas
   async getRecords(nickname: string, page = 1, limit = 50): Promise<PredictionRecord[]> {

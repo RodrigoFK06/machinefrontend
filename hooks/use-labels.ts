@@ -11,7 +11,6 @@ export function useLabels() {
   const { labels, setLabels, setError } = useStore()
 
   const fetchLabels = async (): Promise<Label[]> => {
-    // Verificar si ya tenemos labels cargados
     if (Array.isArray(labels) && labels.length > 0) {
       console.log("📋 Using cached labels:", labels.length)
       return labels
@@ -22,21 +21,17 @@ export function useLabels() {
     try {
       console.log("🔄 Fetching labels from API...")
 
-      // Llamada real a la API con fallback automático
-      const fetchedLabels = (await apiService.getLabels()) as string[] // Forzar el tipo a string[]
+      const fetchedData: { label: string; level: string }[] = await apiService.getLabels()
 
-      console.log("✅ Labels fetched successfully:", fetchedLabels.length)
-
-      // Asegurar que tenemos un array válido
-      const safeLabels = fetchedLabels.map((label) => ({
-        id: label,
-        name: label.replace(/_/g, " "), // Reemplazar guiones bajos por espacios para mostrar nombres legibles
-        description: "", // Proveer un valor vacío para evitar errores
+      const safeLabels: Label[] = fetchedData.map((item) => ({
+        id: item.label,
+        name: item.label.replace(/_/g, " "),
+        description: "", // Puedes completar luego si lo deseas
+        difficulty: item.level.toLowerCase() as Label["difficulty"], // convertir a tipo correcto
       }))
 
       setLabels(safeLabels)
       setError(null)
-
       return safeLabels
     } catch (error) {
       console.error("❌ Error fetching labels:", error)
@@ -46,21 +41,17 @@ export function useLabels() {
         description: "No se pudieron cargar las señas. Usando datos de demostración.",
         variant: "destructive",
       })
-
-      // Devolver array vacío en caso de error total
       return []
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Cargar las etiquetas al montar el componente
   useEffect(() => {
     fetchLabels()
   }, [])
 
   return {
-    // Asegurarnos de que labels siempre sea un array
     labels: Array.isArray(labels) ? labels : [],
     isLoading,
     fetchLabels,
