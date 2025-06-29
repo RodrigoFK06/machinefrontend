@@ -145,6 +145,15 @@ export function CameraModule({ selectedLabel, onPredictionComplete }: CameraModu
       .replace(/\s+/g, "_")
       .trim()
 
+    if (!normalizedLabel) {
+      toast({
+        title: "Error en etiqueta",
+        description: "No se pudo procesar el nombre de la seña.",
+        variant: "destructive",
+      })
+      return
+    }
+
     console.log("🔍 Normalized Label:", normalizedLabel)
     console.log("📤 Primer frame a enviar:", sequence[0])
     console.log("📤 Enviando al backend:", {
