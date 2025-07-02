@@ -1,23 +1,29 @@
 "use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { PredictionRecord } from "@/store/use-store"
 import { format, subDays } from "date-fns"
 import { es } from "date-fns/locale"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 
+interface ProgressItem {
+  label: string
+  total_attempts: number
+  correct_attempts: number
+  doubtful_attempts: number
+  incorrect_attempts: number
+  last_attempt: string
+}
+
 interface ProgressChartProps {
-  records: PredictionRecord[]
+  progressData: ProgressItem[]
   title: string
   description?: string
 }
 
-export function ProgressChart({ records, title, description }: ProgressChartProps) {
-  // Asegurarnos de que records sea un array
-  const safeRecords = Array.isArray(records) ? records : []
+export function ProgressChart({ progressData, title, description }: ProgressChartProps) {
+  const safeProgress = Array.isArray(progressData) ? progressData : []
 
-  // Process data for chart
   const processData = () => {
-    // Get last 7 days
     const days = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(new Date(), 6 - i)
       return {
@@ -30,19 +36,19 @@ export function ProgressChart({ records, title, description }: ProgressChartProp
       }
     })
 
-    // Map records to days
-    safeRecords.forEach((record) => {
-      const recordDate = new Date(record.timestamp)
+    safeProgress.forEach((item) => {
+      const recordDate = new Date(item.last_attempt)
+      const recordDay = recordDate.toISOString().split("T")[0] // "2025-07-02"
       const dayIndex = days.findIndex(
-        (day) =>
-          recordDate.getDate() === day.date.getDate() &&
-          recordDate.getMonth() === day.date.getMonth() &&
-          recordDate.getFullYear() === day.date.getFullYear(),
+        (day) => day.date.toISOString().split("T")[0] === recordDay
       )
 
+
       if (dayIndex !== -1) {
-        days[dayIndex][record.evaluation] += 1
-        days[dayIndex].total += 1
+        days[dayIndex].correct += item.correct_attempts
+        days[dayIndex].doubtful += item.doubtful_attempts
+        days[dayIndex].incorrect += item.incorrect_attempts
+        days[dayIndex].total += item.total_attempts
       }
     })
 
@@ -68,12 +74,7 @@ export function ProgressChart({ records, title, description }: ProgressChartProp
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 0,
-                bottom: 5,
-              }}
+              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />

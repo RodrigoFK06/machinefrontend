@@ -1,5 +1,5 @@
 "use client"
-
+import { labelFriendlyNames } from "@/lib/label-names" // al inicio del archivo
 import { useState } from "react"
 import { HistoryTable } from "@/components/history-table"
 import { useRecords } from "@/hooks/use-records"
@@ -73,11 +73,11 @@ export default function HistoryPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las señas</SelectItem>
-                  {safeLabels.map((label) => (
-                    <SelectItem key={label.id} value={label.name}>
-                      {label.name}
-                    </SelectItem>
-                  ))}
+                 {safeLabels.map((label) => (
+  <SelectItem key={label.id} value={label.name}>
+    {labelFriendlyNames[label.name] || label.name}
+  </SelectItem>
+))}
                 </SelectContent>
               </Select>
             </div>

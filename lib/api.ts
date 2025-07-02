@@ -28,6 +28,8 @@ export interface PredictionResponse {
   observation: string
   success_rate?: number
   average_confidence?: number
+  retroalimentacion?: string // ✅ <-- Agrega esta línea
+
 }
 
 export interface Label {

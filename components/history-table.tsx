@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, AlertTriangle, XCircle, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { labelFriendlyNames } from "@/lib/label-names"
 
 interface HistoryTableProps {
   records: PredictionRecord[]
@@ -19,7 +20,6 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
   const [sortField, setSortField] = useState<keyof PredictionRecord>("timestamp")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
 
-  // Asegurarnos de que records sea un array
   const safeRecords = Array.isArray(records) ? records : []
 
   const handleSort = (field: keyof PredictionRecord) => {
@@ -85,6 +85,8 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
     }
   }
 
+  const friendlyLabel = (label: string | undefined) => (labelFriendlyNames[label ?? ""] || label )?? "-"
+
   if (isLoading) {
     return <div className="text-center py-8">Cargando registros...</div>
   }
@@ -103,83 +105,33 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
         <TableHeader>
           <TableRow>
             <TableHead className="w-[180px]">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort("timestamp")}
-                className="flex items-center font-medium"
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleSort("timestamp")} className="flex items-center font-medium">
                 Fecha
-                {sortField === "timestamp" &&
-                  (sortDirection === "asc" ? (
-                    <ChevronUp className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  ))}
+                {sortField === "timestamp" && (sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />)}
               </Button>
             </TableHead>
             <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort("expected_label")}
-                className="flex items-center font-medium"
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleSort("expected_label")} className="flex items-center font-medium">
                 Seña esperada
-                {sortField === "expected_label" &&
-                  (sortDirection === "asc" ? (
-                    <ChevronUp className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  ))}
+                {sortField === "expected_label" && (sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />)}
               </Button>
             </TableHead>
             <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort("predicted_label")}
-                className="flex items-center font-medium"
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleSort("predicted_label")} className="flex items-center font-medium">
                 Seña detectada
-                {sortField === "predicted_label" &&
-                  (sortDirection === "asc" ? (
-                    <ChevronUp className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  ))}
+                {sortField === "predicted_label" && (sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />)}
               </Button>
             </TableHead>
             <TableHead className="text-right">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort("confidence")}
-                className="flex items-center font-medium ml-auto"
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleSort("confidence")} className="flex items-center font-medium ml-auto">
                 Confianza
-                {sortField === "confidence" &&
-                  (sortDirection === "asc" ? (
-                    <ChevronUp className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  ))}
+                {sortField === "confidence" && (sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />)}
               </Button>
             </TableHead>
             <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSort("evaluation")}
-                className="flex items-center font-medium"
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleSort("evaluation")} className="flex items-center font-medium">
                 Evaluación
-                {sortField === "evaluation" &&
-                  (sortDirection === "asc" ? (
-                    <ChevronUp className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  ))}
+                {sortField === "evaluation" && (sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />)}
               </Button>
             </TableHead>
             <TableHead className="w-[50px]"></TableHead>
@@ -187,11 +139,11 @@ export function HistoryTable({ records, isLoading = false }: HistoryTableProps) 
         </TableHeader>
         <TableBody>
           {sortedRecords.map((record, index) => (
-            <TableRow key={record.id || index}> {/* Usar índice como respaldo si `id` está ausente */}
+            <TableRow key={record.id || index}>
               <TableCell className="font-medium">{formatDate(record.timestamp)}</TableCell>
-              <TableCell>{record.expected_label}</TableCell>
-              <TableCell>{record.predicted_label}</TableCell>
-              <TableCell className="text-right">{Math.round(record.confidence )}%</TableCell>
+              <TableCell>{friendlyLabel(record.expected_label)}</TableCell>
+              <TableCell>{friendlyLabel(record.predicted_label)}</TableCell>
+              <TableCell className="text-right">{Math.round(record.confidence)}%</TableCell>
               <TableCell>{getEvaluationBadge(record.evaluation)}</TableCell>
               <TableCell>
                 <DropdownMenu>

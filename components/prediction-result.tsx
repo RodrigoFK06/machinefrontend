@@ -14,6 +14,7 @@ interface PredictionResultProps {
     evaluation: "correct" | "doubtful" | "incorrect"
     observation: string
     success_rate?: number
+   retroalimentacion?: string // 👈 nuevo campo opcional
     average_confidence?: number
   } | null
   expectedLabel: string
@@ -102,12 +103,13 @@ export function PredictionResult({ result, expectedLabel, onClose, onRepeat, onN
               />
             </div>
 
-            {result.observation && (
-              <div className="text-sm mt-4 p-3 bg-muted rounded-md">
-                <p className="font-medium mb-1">Observación:</p>
-                <p>{result.observation}</p>
-              </div>
-            )}
+{(result.retroalimentacion || result.observation) && (
+  <div className="text-sm mt-4 p-3 bg-muted rounded-md">
+    <p className="font-medium mb-1">Retroalimentación:</p>
+    <p>{result.retroalimentacion || result.observation}</p>
+  </div>
+)}
+
 
             {(result.success_rate !== undefined || result.average_confidence !== undefined) && (
               <div className="grid grid-cols-2 gap-4 mt-4">
